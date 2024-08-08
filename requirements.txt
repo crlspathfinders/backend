@@ -16,3 +16,5 @@ cloudinary==1.40.0
 firebase==4.0.1
 firebase-admin==6.5.0
 python-multipart==0.0.9
+passlib==1.7.4
+fastapi-users==13.0.0

@@ -45,6 +45,10 @@ app.include_router(mentor.router)
 # uvicorn main:app --reload
 # Read a document:
 
+@app.get("/")
+def home():
+    return {"status": "rehaan"}
+
 @app.get("/read/{collection}/{id}")
 async def read_document(collection: str, id: str):
     return get_collection_id(collection, id)

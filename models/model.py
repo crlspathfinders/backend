@@ -1,9 +1,12 @@
 import firebase_admin, json, os
 from firebase_admin import credentials, storage
 from firebase_admin import firestore
+from dotenv import load_dotenv
 
-cred = credentials.Certificate("accountkey.json")
-fire_app = firebase_admin.initialize_app(cred)
+load_dotenv()
+
+cred = credentials.Certificate(os.environ.get("FIREBASE_CREDENTIALS"))
+firebase_admin.initialize_app(cred)
 
 firebaseConfig = {
   "apiKey": "AIzaSyAJ2VJSxD7StSrBH_PzrlHdM6VyxaLfCQ0",
