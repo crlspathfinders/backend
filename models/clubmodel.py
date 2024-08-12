@@ -26,9 +26,9 @@ def make_club(advisor_email, club_days, club_description, club_name, president_e
     
 def change_club(advisor_email, club_days, club_description, club_name, president_email, room_number, secret_password, start_time, status, vice_presidents_emails):
     collection = "Clubs"
-    doc_id = get_el_id("Clubs", club_name)
+    doc_id = get_el_id("Clubs", secret_password)
     try:
-        result = db.collection(collection).document(doc_id).update(
+        db.collection(collection).document(doc_id).update(
             {
                 # Schema:
                 "advisor_email": advisor_email,
@@ -43,7 +43,19 @@ def change_club(advisor_email, club_days, club_description, club_name, president
                 "vice_presidents_emails": vice_presidents_emails
             }
         )
-        print(result)
         return {"status": "Success"}
     except Exception as e:
         return {"status": f"Failed: {str(e)}"}
+    
+def update_status(secret_password, status):
+    collection = "Clubs"
+    doc_id = get_el_id("Clubs", secret_password)
+    try:
+        db.collection(collection).document(doc_id).update(
+            {
+                "status": status
+            }
+        )
+        return {"status": "Successfully changed status"}
+    except Exception as e:
+        return {"status": f"Failed to change status: {e}"}

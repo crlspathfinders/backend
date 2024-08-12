@@ -11,16 +11,24 @@ class Mentor(BaseModel):
     firstname: str
     lastname: str
     email: str
-    race: str # Maybe a list (??)
-    religion: str
-    gender: str
+    races: List[str]
+    religions: List[str]
+    gender: List[str] # Change to just a string later
     languages: List[str]
     academics: List[str]
 
 @router.post("/creatementor/")
 async def create_mentor(mentor: Mentor):
-    return make_mentor(mentor.firstname, mentor.lastname, mentor.email, mentor.race, mentor.religion, mentor.gender, mentor.languages, mentor.academics)
+    try:
+        make_mentor(mentor.firstname, mentor.lastname, mentor.email, mentor.races, mentor.religions, mentor.gender, mentor.languages, mentor.academics)
+        return {"status": "Successfully created mentor"}
+    except Exception as e:
+        return {"status": f"Failed to create mentor: {e}"}
 
 @router.post("/updatementor/")
 async def update_mentor(mentor: Mentor):
-    return change_mentor(mentor.firstname, mentor.lastname, mentor.email, mentor.race, mentor.religion, mentor.gender, mentor.languages, mentor.academics)
+    try:
+        change_mentor(mentor.firstname, mentor.lastname, mentor.email, mentor.races, mentor.religions, mentor.gender, mentor.languages, mentor.academics)
+        return {"status": "Successfully edited mentor"}
+    except Exception as e:
+        return {"status": f"Failed to edit mentor: {e}"}

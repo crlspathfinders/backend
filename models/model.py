@@ -32,7 +32,7 @@ def get_el_id(collection, target):
             doc_dict["id"] = doc.id
             results.append(doc_dict)
         for r in results:
-            if r["club_name"] == target:
+            if r["secret_password"] == target:
                 return r["id"]
     elif collection == "Users" or collection == "Mentors":
         collection = db.collection(collection)
