@@ -95,3 +95,10 @@ def remove_id(collection, id):
         return {"status": "Success"}
     except Exception as e:
         return {"status": f"Failed: {str(e)}"}
+    
+def get_doc(collection, doc):
+    try:
+        result = db.collection(collection).document(doc).get().to_dict()
+        return result
+    except Exception as e:
+        return {"status": f"Failed: {str(e)}"}

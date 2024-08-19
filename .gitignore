@@ -1,3 +1,4 @@
 .env
 __pycache__/
 accountkey.json
+new_venv/

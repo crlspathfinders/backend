@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from models.usermodel import make_user, change_user, verify_token, get_current_user
-from typing import Annotated
+from models.usermodel import make_user, change_user, verify_token, get_current_user, get_user_from_email, join_leave_club
+from typing import Annotated, List
+from models.model import get_el_id, get_doc
 
 router = APIRouter(
     tags=["user"]
@@ -11,10 +12,12 @@ class User(BaseModel):
     email: str
     is_leader: bool
     role: str
+    leading: List[str]
+    joined_clubs: List[str]
     
 @router.post("/createuser/")
 async def create_user(user: User):
-    return make_user(user.email, user.is_leader, user.role)
+    return make_user(user.email, user.is_leader, user.role, user.leading, user.joined_clubs)
 
 @router.post("/updateuser/")
 async def update_user(user: User):
@@ -51,7 +54,7 @@ def create_user_route(token: Token):
 @router.post("/make-user")
 def make_new_user(user: User):
     try:
-        make_user(user.email, user.is_leader, user.role)
+        make_user(user.email, user.is_leader, user.role, user.leading, user.joined_clubs)
         return {"status": "Successfully made user"}
     except Exception as e:
         return {"status": f"Failed to make user: {e}"}
@@ -62,3 +65,28 @@ def get_user_info(current_user: dict = Depends(get_current_user)):
     uid = current_user.get("uid")
     # Create the User document in Firestore here.
     return {"uid": uid, "email": email}
+
+@router.get("/getuserdocdata/{email}")
+def get_user_doc_data(email: str):
+    try:
+        return get_user_from_email(email)
+    except Exception as e:
+        return {"status": f"Faield to getuserdocfromdata: {e}"}
+    
+@router.get("/toggleclub/{email}/{club_id}")
+def toggle_club(email: str, club_id: str):
+    clubs = get_user_from_email(email)["joined_clubs"]
+    print(clubs)
+
+    if club_id in clubs:
+        try:
+            join_leave_club("leave", email, club_id)
+            return {"status": "Successfully left club"}
+        except Exception as e:
+            return {"status": f"Failed to leave club: {e}"}
+    else:
+        try:
+            join_leave_club("join", email, club_id)
+            return {"status": "Successfully joined club"}
+        except Exception as e:
+            return {"status": f"Failed to leave club: {e}"}

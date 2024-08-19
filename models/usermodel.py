@@ -1,15 +1,17 @@
-from .model import db, get_el_id
+from .model import db, get_el_id, get_doc
 from fastapi import HTTPException, Header, Depends
 from firebase_admin import auth
 
-def make_user(email, is_leader, role):
+def make_user(email, is_leader, role, leading, joined_clubs):
     collection = "Users"
     try:
         result = db.collection(collection).add(
             {
                 "email": email,
                 "is_leader": is_leader,
-                "role": role
+                "role": role,
+                "leading": leading,
+                "joined_clubs": joined_clubs
                 # Need to add img_url
             }
         )
@@ -51,3 +53,35 @@ def get_current_user(authorization: str = Header(...)):
         return decoded_token
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+def get_user_from_email(email):
+    collection = "Users"
+    try:
+        doc_id = get_el_id("Users", email)
+        user = db.collection(collection).document(doc_id).get().to_dict()
+        return user
+    except Exception as e:
+        return f"Failed to getuserfromemail: {e}"
+    
+def join_leave_club(join_leave, email, club):
+    try:
+        user = get_user_from_email(email)
+        user_id = get_el_id("Users", email)
+        print(user_id)
+        clubs = user["joined_clubs"]
+        print(clubs)
+
+        if join_leave == "leave":
+            clubs.remove(club)
+        elif join_leave == "join":
+            clubs.append(club)
+
+        doc = db.collection("Users").document(user_id)
+        doc.update(
+            {
+                "joined_clubs": clubs
+            }
+        )
+        return {"status": "Successfully left club"}
+    except Exception as e:
+        return {"status": f"Failed to leave club: {e}"}
