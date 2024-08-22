@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from models.usermodel import make_user, change_user, verify_token, get_current_user, get_user_from_email, join_leave_club
 from typing import Annotated, List
 from models.model import get_el_id, get_doc
+from models.clubmodel import get_members, manage_members, get_secret_pass
 
 router = APIRouter(
     tags=["user"]
@@ -75,18 +76,26 @@ def get_user_doc_data(email: str):
     
 @router.get("/toggleclub/{email}/{club_id}")
 def toggle_club(email: str, club_id: str):
-    clubs = get_user_from_email(email)["joined_clubs"]
-    print(clubs)
+    user = get_user_from_email(email)
+    clubs = user["joined_clubs"]
+    # print(clubs)
+
+    members = get_members(club_id)
+    secret_password = get_secret_pass(club_id)
 
     if club_id in clubs:
         try:
             join_leave_club("leave", email, club_id)
+            members.remove(email)
+            manage_members(secret_password, members)
             return {"status": "Successfully left club"}
         except Exception as e:
             return {"status": f"Failed to leave club: {e}"}
     else:
         try:
             join_leave_club("join", email, club_id)
+            members.append(email)
+            manage_members(secret_password, members)
             return {"status": "Successfully joined club"}
         except Exception as e:
             return {"status": f"Failed to leave club: {e}"}

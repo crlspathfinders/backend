@@ -85,3 +85,4 @@ def join_leave_club(join_leave, email, club):
         return {"status": "Successfully left club"}
     except Exception as e:
         return {"status": f"Failed to leave club: {e}"}
+    
