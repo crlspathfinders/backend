@@ -1,7 +1,9 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
-from models.clubmodel import make_club, change_club, update_status
+from models.clubmodel import make_club, change_club, update_status, remove_club
+from models.model import get_collection_python
+from models.usermodel import join_leave_club
 
 router = APIRouter(
     tags=["club"]
@@ -46,3 +48,20 @@ def change_status(change_status: ChangeStatus):
         return {"status": "Successfully changed status"}
     except Exception as e:
         return {"status": f"Failed to change status: {e}"}
+    
+@router.get("/deleteclub/{club_id}")
+def delete_club(club_id: str):
+    try:
+        remove_club(club_id)
+        # Now remove this club from all of the users who are members of this club:
+        users = get_collection_python("Users")
+        print(f"57 - {users}")
+        for u in users:
+            if len(u["joined_clubs"]) > 0:
+                if club_id in u["joined_clubs"]:
+                    print("59 - Found!")
+                    join_leave_club("leave", u["email"], club_id)
+                else: print("61 - Not found")
+        return {"status": "Successfully deleted club"}
+    except Exception as e:
+        return {"status": f"Failed to delete club: {e}"}

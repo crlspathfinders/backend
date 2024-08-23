@@ -66,9 +66,18 @@ def get_collection(collection):
 
     json_results = json.dumps(results)
 
-    print(f"After: " + json_results)
-
     return json_results
+
+def get_collection_python(collection):
+    collection = db.collection(collection)
+    docs = collection.get()
+    results = []
+    for doc in docs:
+        doc_dict = doc.to_dict()
+        doc_dict["id"] = doc.id
+        results.append(doc_dict)
+
+    return results
 
 def get_sub_collection(collection, id, subcollection):
     try:
@@ -82,8 +91,6 @@ def get_sub_collection(collection, id, subcollection):
         # print(f"Before: {results}")
 
         json_results = json.dumps(results)
-
-        print(f"After: " + json_results)
 
         return json_results
     except Exception as e:

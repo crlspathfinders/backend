@@ -79,3 +79,11 @@ def manage_members(secret_password, new_members):
         return {"status": "Successfully updated members"}
     except Exception as e:
         return {"status": f"Failed to update members: {e}"}
+    
+def remove_club(club_id):
+    try:
+        db.collection("Clubs").document(club_id).delete()
+        # Also have to delete from joined club of every user, etc.
+        return {"status": "Successfully deleted club"}
+    except Exception as e:
+        return {"status": f"Failed to delete club: {e}"}
