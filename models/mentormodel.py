@@ -42,3 +42,11 @@ def change_mentor(firstname, lastname, email, race, religion, gender, languages,
         return {"status": "Success"}
     except Exception as e:
         return {"status": f"Failed: {str(e)}"}
+    
+def remove_mentor(email):
+    doc_id = get_el_id("Mentors", email)
+    try:
+        db.collection("Mentors").document(doc_id).delete()
+        return {"Status": "Successfully deleted mentor"}
+    except Exception as e:
+        return {"status": f"Failed to delete mentor: {e}"}

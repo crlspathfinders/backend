@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
-from models.mentormodel import make_mentor, change_mentor
+from models.mentormodel import make_mentor, change_mentor, remove_mentor
 
 router = APIRouter(
     tags=["mentor"]
@@ -32,3 +32,11 @@ async def update_mentor(mentor: Mentor):
         return {"status": "Successfully edited mentor"}
     except Exception as e:
         return {"status": f"Failed to edit mentor: {e}"}
+    
+@router.get("/deletementor/{email}")
+async def delete_mentor(email: str):
+    try:
+        remove_mentor(email)
+        return {"Status": "Successfully deleted mentor"}
+    except Exception as e:
+        return {"status": f"Failed to delete mentor: {e}"}
