@@ -86,3 +86,27 @@ def join_leave_club(join_leave, email, club):
     except Exception as e:
         return {"status": f"Failed to leave club: {e}"}
     
+def change_user_role(email, role):
+    try:
+        user_id = get_el_id("Users", email)
+        print(f"userid - {user_id}")
+        doc = db.collection("Users").document(user_id)
+        doc.update(
+            {
+                "role": role
+            }
+        )
+        return {"status": "Successfully changed user role"}
+    except Exception as e:
+        print(f"Failed to change role: {e}")
+        return {"status": f"Failed to change user role: {e}"}
+    
+def delete_user(email):
+    try:
+        user_id = get_el_id("Users", email)
+        print(f"userid - {user_id}")
+        db.collection("Users").document(user_id).delete()
+        return {"status": "Successfully deleted user"}
+    except Exception as e:
+        print(f"Failed to change role: {e}")
+        return {"status": f"Failed to delete user: {e}"}

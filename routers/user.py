@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from models.usermodel import make_user, change_user, verify_token, get_current_user, get_user_from_email, join_leave_club
+from models.usermodel import make_user, change_user, verify_token, get_current_user, get_user_from_email, join_leave_club, change_user_role, delete_user
 from typing import Annotated, List
 from models.model import get_el_id, get_doc
 from models.clubmodel import get_members, manage_members, get_secret_pass
@@ -99,3 +99,25 @@ def toggle_club(email: str, club_id: str):
             return {"status": "Successfully joined club"}
         except Exception as e:
             return {"status": f"Failed to leave club: {e}"}
+
+class ChangeRole(BaseModel):
+    email: str
+    new_role: str
+
+@router.post("/changerole")
+def change_role(change: ChangeRole):
+    try:
+        change_user_role(change.email, change.new_role)
+        return {"status": "Successfully changed user role"}
+    except Exception as e:
+        print(f"Failed to change role: {e}")
+        return {"status": f"Failed to change user role: {e}"}
+    
+@router.get("/deleteuser/{email}")
+def remove_user(email: str):
+    try:
+        delete_user(email)
+        return {"status": "Successfully deleted user"}
+    except Exception as e:
+        print(f"Failed to change role: {e}")
+        return {"status": f"Failed to delete user: {e}"}
