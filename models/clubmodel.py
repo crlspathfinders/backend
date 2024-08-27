@@ -1,4 +1,4 @@
-from .model import db, get_el_id
+from .model import db, get_el_id, get_doc
 
 def get_secret_pass(club_id):
     return db.collection("Clubs").document(club_id).get().to_dict()["secret_password"]
@@ -87,3 +87,19 @@ def remove_club(club_id):
         return {"status": "Successfully deleted club"}
     except Exception as e:
         return {"status": f"Failed to delete club: {e}"}
+    
+def verify_club_model(secret_password):
+    try:
+        club_id = get_el_id("Clubs", secret_password)
+        print(f"got id: {club_id}")
+        whole_club = get_doc("Clubs", club_id)
+        club = whole_club["club_name"]
+        if whole_club["status"] == "Pending":
+            update_status(secret_password, "Approved")
+            print(f"got club: {club}")
+            return {"status": "Success", "club": club}
+        elif whole_club["status"] == "Approved":
+            return {"status": f"{club} is already approved!", "club": club}
+    except Exception as e:
+        print(f"Club verification failed: {e}")
+        return {"status": "Failed", "error": e}

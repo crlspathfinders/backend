@@ -1,9 +1,14 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
-from models.clubmodel import make_club, change_club, update_status, remove_club
-from models.model import get_collection_python
+from models.clubmodel import make_club, change_club, update_status, remove_club, verify_club_model
+from models.model import get_collection_python, get_el_id, get_doc
 from models.usermodel import join_leave_club
+from sendmail import send_mail
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 router = APIRouter(
     tags=["club"]
@@ -24,7 +29,28 @@ class Club(BaseModel):
 @router.post("/createclub/")
 async def create_info(club: Club):
     try:
+        # Client side makes sure that the president email and advisor emails are correct, etc.
+        # Make club will make create it as Pending -> will wait for advisor verification to Approve it.
         make_club(club.advisor_email, club.club_days, club.club_description, club.club_name, club.president_email, club.room_number, club.secret_password, club.start_time, club.status, club.vice_president_emails)
+        # Now have to send email to advisor with password:
+        sender = os.environ.get("EMAIL_SENDER")
+        password = os.environ.get("EMAIL_PASSWORD")
+        receiver = club.advisor_email
+        subject = f"CRLS Pathfinders | {club.club_name} Confirmation Code"
+        body = f'''CODE: {club.secret_password}
+
+{club.president_email} is registering their club on the CRLS PathFinders website.
+To verify {club.club_name}, log into the PathFinders website, select your email in the top right corner, hit "Verify Club," and then input the code above.
+Once successful, {club.club_name} should appear after hitting "Find a Club."
+
+If there are any problems, send me an email @25ranjaria@cpsd.us
+'''
+        try:
+            send_mail(sender, password, receiver, subject, body)
+            print("Sent mail")
+        except Exception as e:
+            print(f"Failed to send mail: {e}")
+            return {"status": f"Failed to send mail: {e}"}
         return {"status": "Successfully created club"}
     except Exception as e:
         return {"status": f"Failed to create club: {e}"}
@@ -65,3 +91,16 @@ def delete_club(club_id: str):
         return {"status": "Successfully deleted club"}
     except Exception as e:
         return {"status": f"Failed to delete club: {e}"}
+    
+class VerifyClub(BaseModel):
+    secret_password: int
+
+@router.post("/verifyclub")
+def verify_club(verify: VerifyClub):
+    try:
+        status = verify_club_model(verify.secret_password)
+        # print()
+        return status
+    except Exception as e:
+        print(f"Club verification failed: {e}")
+        return {"status": "Failed", "error": e}
