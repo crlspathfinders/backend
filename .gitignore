@@ -1,5 +1,5 @@
 .env
 __pycache__/
-accountkey.json
+# accountkey.json
 new_venv/
 routers/testenv.py
