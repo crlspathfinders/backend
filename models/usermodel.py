@@ -108,5 +108,18 @@ def delete_user(email):
         db.collection("Users").document(user_id).delete()
         return {"status": "Successfully deleted user"}
     except Exception as e:
-        print(f"Failed to change role: {e}")
+        print(f"Failed to delete user: {e}")
         return {"status": f"Failed to delete user: {e}"}
+    
+def change_is_leader(email, leader):
+    try:
+        user_id = get_el_id("Users", email)
+        db.collection("Users").document(user_id).update(
+            {
+                "is_leader": leader
+            }
+        )
+        return {"status": "Successfully changed is leader"}
+    except Exception as e:
+        print(f"Failed to change is leader: {e}")
+        return {"status": f"Failed to change is leader: {e}"}

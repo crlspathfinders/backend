@@ -1,12 +1,13 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
-from models.clubmodel import make_club, change_club, update_status, remove_club, verify_club_model
+from models.clubmodel import make_club, change_club, update_status, remove_club, verify_club_model, upload_club_image, set_club_image_doc
 from models.model import get_collection_python, get_el_id, get_doc
 from models.usermodel import join_leave_club
 from sendmail import send_mail
 from dotenv import load_dotenv
 import os
+from fastapi import FastAPI, File, UploadFile, HTTPException
 
 load_dotenv()
 
@@ -104,3 +105,27 @@ def verify_club(verify: VerifyClub):
     except Exception as e:
         print(f"Club verification failed: {e}")
         return {"status": "Failed", "error": e}
+
+@router.post("/uploadclubimage/")
+async def upload_image(file: UploadFile = File(...)):
+    print(file)
+    try:
+        img_url = upload_club_image(file)
+        print(f"successfully uploaded club img: {img_url}")
+        return {"status": img_url}
+    except Exception as e:
+        print(f"Failed: {e}")
+        return {"status": "Failed"}
+    
+class SetClubImg(BaseModel):
+    img_url: str
+    club_id: str
+
+@router.post("/setclubimg/")
+async def set_club_img(upload: SetClubImg):
+    if upload.img_url != "Failed":
+        set_club_image_doc(upload.club_id, upload.img_url)
+        return {"status": "Successfully updated club img doc"}
+    else:
+        print(f"Failed to update club img doc.")
+        return {"status": f"Failed to update clu img doc."}

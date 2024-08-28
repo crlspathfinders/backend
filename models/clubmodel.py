@@ -1,4 +1,9 @@
-from .model import db, get_el_id, get_doc
+from .model import db, get_el_id, get_doc, storage
+from .usermodel import change_user_role, join_leave_club, change_is_leader
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from uuid import uuid4
+# from PIL import Image
+from io import BytesIO
 
 def get_secret_pass(club_id):
     return db.collection("Clubs").document(club_id).get().to_dict()["secret_password"]
@@ -6,6 +11,7 @@ def get_secret_pass(club_id):
 def make_club(advisor_email, club_days, club_description, club_name, president_email, room_number, secret_password, start_time, status, vice_presidents_emails):
     # Need to pass in the id, etc for which collection to actually change.
     collection = "Clubs"
+    standard_img = "https://firebasestorage.googleapis.com/v0/b/crlspathfinders-82886.appspot.com/o/club-images%2Felementor-placeholder-image.webp?alt=media&token=d841393a-df8c-4ea6-9622-58b0e7ae89cd"
     try:
         result = db.collection(collection).add(
             {
@@ -19,11 +25,39 @@ def make_club(advisor_email, club_days, club_description, club_name, president_e
                 "start_time": start_time,
                 "status": status,
                 "vice_presidents_emails": vice_presidents_emails,
-                "members": []
+                "members": [],
+                "club_img": standard_img
                 # Need to add img_url
             }
         )
-        print(result)
+        # Make the president and vice-presidents have "Leader" role and add club to joined_clubs:
+        try:
+            change_user_role(president_email, "Leader")
+            print(f"Changed pres role: {president_email}")
+            club_id = get_el_id("Clubs", secret_password)
+            join_leave_club("join", president_email, club_id)
+            print(f"pres joined {club_id}")
+            members = get_members(club_id)
+            members.append(president_email)
+            print(f"added pres to club members")
+            change_is_leader(president_email, True)
+            print(f"changed {president_email} to is leader")
+            for v in vice_presidents_emails:
+                if len(v) > 1: 
+                    account = get_doc("Users", get_el_id("Users", v))
+                    print(f"role: {account}")
+                    if account["role"] == "Member":
+                        change_user_role(v, "Leader")
+                        print(f"changed vp role: {v}")
+                    change_is_leader(v, True)
+                    print(f"Changed {v} to is leader")
+                    join_leave_club("join", v, club_id)
+                    print(f"pres joined {club_id}")
+                    members.append(v)
+                    print(f"added vp to club members")
+            manage_members(secret_password, members)
+        except Exception as e:
+            print(f"Failed to change pres / vp role: {e}")
         return {"status": "Success"}
     except Exception as e:
         return {"status": f"Failed: {str(e)}"}
@@ -103,3 +137,33 @@ def verify_club_model(secret_password):
     except Exception as e:
         print(f"Club verification failed: {e}")
         return {"status": "Failed", "error": e}
+    
+def upload_club_image(file: UploadFile = File(...)):
+    try:
+        # Generate a unique file name
+        file_name = f"{uuid4}.jpg"
+        blob = storage.bucket().blob(f'club-images/{file_name}')
+
+        # Upload the image
+        blob.upload_from_file(file.file, content_type=file.content_type)
+        blob.make_public()
+
+        image_url = blob.public_url
+
+        print(f"Successfully uploaded image: {image_url}")
+        return image_url
+    except Exception as e:
+        print(f"Failed to upload img: {e}")
+        return "Failed"
+    
+def set_club_image_doc(club_id, img_url):
+    try:
+        db.collection("Clubs").document(club_id).update(
+            {
+                "club_img": img_url
+            }
+        )
+        return {"status": "Successfully updated club img doc"}
+    except Exception as e:
+        print(f"Failed to update clu img doc: {e}")
+        return {"status": f"Failed to update club img doc: {e}"}

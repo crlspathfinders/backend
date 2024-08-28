@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 cred = credentials.Certificate(os.environ.get("FIREBASE_CREDENTIALS"))
-firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(cred, {
+    "storageBucket": "crlspathfinders-82886.appspot.com"
+})
 
 firebaseConfig = {
   "apiKey": "AIzaSyAJ2VJSxD7StSrBH_PzrlHdM6VyxaLfCQ0",
