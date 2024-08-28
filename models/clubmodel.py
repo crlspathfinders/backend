@@ -136,7 +136,7 @@ def verify_club_model(secret_password):
             return {"status": f"{club} is already approved!", "club": club}
     except Exception as e:
         print(f"Club verification failed: {e}")
-        return {"status": "Failed", "error": e}
+        return {"status": "Failed", "error": e} 
     
 def upload_club_image(file: UploadFile = File(...)):
     try:
