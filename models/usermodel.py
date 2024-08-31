@@ -11,7 +11,8 @@ def make_user(email, is_leader, role, leading, joined_clubs):
                 "is_leader": is_leader,
                 "role": role,
                 "leading": leading,
-                "joined_clubs": joined_clubs
+                "joined_clubs": joined_clubs,
+                "is_mentor": False
                 # Need to add img_url
             }
         )
@@ -90,6 +91,15 @@ def change_user_role(email, role):
     try:
         user_id = get_el_id("Users", email)
         print(f"userid - {user_id}")
+        curr_role = get_doc("Users", user_id)["role"]
+        if curr_role == "Mentor" and role == "Member":
+            change_is_mentor(email, False)
+        elif curr_role == "Member" and role == "Mentor":
+            change_is_mentor(email, True)
+        elif curr_role == "Leader" and role == "Member":
+            change_is_leader(email, False)
+        elif curr_role == "Member" and role == "Leader":
+            change_is_leader(email, True)
         doc = db.collection("Users").document(user_id)
         doc.update(
             {
@@ -123,3 +133,16 @@ def change_is_leader(email, leader):
     except Exception as e:
         print(f"Failed to change is leader: {e}")
         return {"status": f"Failed to change is leader: {e}"}
+    
+def change_is_mentor(email, mentor):
+    try:
+        user_id = get_el_id("Users", email)
+        db.collection("Users").document(user_id).update(
+            {
+                "is_mentor": mentor
+            }
+        )
+        return {"status": "Successfully changed is mentor"}
+    except Exception as e:
+        print(f"Failed to change is mentor: {e}")
+        return {"status": f"Failed to change is mentor: {e}"}

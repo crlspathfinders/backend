@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
-from models.mentormodel import make_mentor, change_mentor, remove_mentor
+from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc
+from fastapi import FastAPI, File, UploadFile, HTTPException
 
 router = APIRouter(
     tags=["mentor"]
@@ -10,6 +11,7 @@ router = APIRouter(
 class Mentor(BaseModel):
     firstname: str
     lastname: str
+    bio: str
     email: str
     races: List[str]
     religions: List[str]
@@ -20,7 +22,9 @@ class Mentor(BaseModel):
 @router.post("/creatementor/")
 async def create_mentor(mentor: Mentor):
     try:
-        make_mentor(mentor.firstname, mentor.lastname, mentor.email, mentor.races, mentor.religions, mentor.gender, mentor.languages, mentor.academics)
+        print("create mentor start")
+        make_mentor(mentor.firstname, mentor.lastname, mentor.bio, mentor.email, mentor.races, mentor.religions, mentor.gender, mentor.languages, mentor.academics)
+        print("create mentor end")
         return {"status": "Successfully created mentor"}
     except Exception as e:
         return {"status": f"Failed to create mentor: {e}"}
@@ -28,7 +32,7 @@ async def create_mentor(mentor: Mentor):
 @router.post("/updatementor/")
 async def update_mentor(mentor: Mentor):
     try:
-        change_mentor(mentor.firstname, mentor.lastname, mentor.email, mentor.races, mentor.religions, mentor.gender, mentor.languages, mentor.academics)
+        change_mentor(mentor.firstname, mentor.lastname, mentor.bio, mentor.email, mentor.races, mentor.religions, mentor.gender, mentor.languages, mentor.academics)
         return {"status": "Successfully edited mentor"}
     except Exception as e:
         return {"status": f"Failed to edit mentor: {e}"}
@@ -40,3 +44,27 @@ async def delete_mentor(email: str):
         return {"Status": "Successfully deleted mentor"}
     except Exception as e:
         return {"status": f"Failed to delete mentor: {e}"}
+    
+@router.post("/uploadmentorimage/")
+async def upload_image(file: UploadFile = File(...)):
+    print(file)
+    try:
+        img_url = upload_mentor_image(file)
+        print(f"successfully uploaded mentor img: {img_url}")
+        return {"status": img_url}
+    except Exception as e:
+        print(f"Failed: {e}")
+        return {"status": "Failed"}
+    
+class SetClubImg(BaseModel):
+    img_url: str
+    mentor_email: str
+
+@router.post("/setmentorimg/")
+async def set_club_img(upload: SetClubImg):
+    if upload.img_url != "Failed":
+        set_mentor_image_doc(upload.mentor_email, upload.img_url)
+        return {"status": "Successfully updated mentor img doc"}
+    else:
+        print(f"Failed to update mentor img doc.")
+        return {"status": f"Failed to update mentor img doc."}

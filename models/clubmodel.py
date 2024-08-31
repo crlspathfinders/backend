@@ -2,7 +2,6 @@ from .model import db, get_el_id, get_doc, storage
 from .usermodel import change_user_role, join_leave_club, change_is_leader
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from uuid import uuid4
-# from PIL import Image
 from io import BytesIO
 
 def get_secret_pass(club_id):
@@ -141,7 +140,7 @@ def verify_club_model(secret_password):
 def upload_club_image(file: UploadFile = File(...)):
     try:
         # Generate a unique file name
-        file_name = f"{uuid4}.jpg"
+        file_name = f"{uuid4()}.jpg"
         blob = storage.bucket().blob(f'club-images/{file_name}')
 
         # Upload the image
@@ -165,5 +164,5 @@ def set_club_image_doc(club_id, img_url):
         )
         return {"status": "Successfully updated club img doc"}
     except Exception as e:
-        print(f"Failed to update clu img doc: {e}")
+        print(f"Failed to update club img doc: {e}")
         return {"status": f"Failed to update club img doc: {e}"}

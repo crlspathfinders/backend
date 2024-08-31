@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from models.usermodel import make_user, change_user, verify_token, get_current_user, get_user_from_email, join_leave_club, change_user_role, delete_user
+from models.usermodel import make_user, change_user, verify_token, get_current_user, get_user_from_email, join_leave_club, change_user_role, delete_user, change_is_leader, change_is_mentor
 from typing import Annotated, List
 from models.model import get_el_id, get_doc
 from models.clubmodel import get_members, manage_members, get_secret_pass
@@ -121,3 +121,29 @@ def remove_user(email: str):
     except Exception as e:
         print(f"Failed to change role: {e}")
         return {"status": f"Failed to delete user: {e}"}
+
+class ToggleLeaderMentor(BaseModel):
+    email: str
+    leader_mentor: str
+    toggle: bool
+
+@router.post("/toggleleadermentor")
+def toggle_leader_mentor(toggle: ToggleLeaderMentor):
+    if toggle.leader_mentor == "Leader":
+        try:
+            change_is_leader(toggle.email, toggle.toggle)
+            print(f"Changed {toggle.email} to {toggle.toggle}")
+            return {"status": "Successfully toggled leader"}
+        except Exception as e:
+            print(f"Failed to toggle leader: {e}")
+            return {"status": f"Failed to toggle leader: {e}"}
+    if toggle.leader_mentor == "Mentor":
+        try:
+            change_is_mentor(toggle.email, toggle.toggle)
+            print(f"Changed {toggle.email} to {toggle.toggle}")
+            return {"status": "Successfully toggled mentor"}
+        except Exception as e:
+            print(f"Failed to toggle mentor: {e}")
+            return {"status": f"Failed to toggle mentor: {e}"}
+    print(f"Wrong / not enough parameters in toggle leader mentor ok.")
+    return {"status": "Incorrect parameters"}

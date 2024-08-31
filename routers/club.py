@@ -128,4 +128,4 @@ async def set_club_img(upload: SetClubImg):
         return {"status": "Successfully updated club img doc"}
     else:
         print(f"Failed to update club img doc.")
-        return {"status": f"Failed to update clu img doc."}
+        return {"status": f"Failed to update club img doc."}
