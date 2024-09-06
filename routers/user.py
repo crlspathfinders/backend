@@ -69,6 +69,7 @@ def get_user_info(current_user: dict = Depends(get_current_user)):
 
 @router.get("/getuserdocdata/{email}")
 def get_user_doc_data(email: str):
+    print("starting getuserdocdata")
     try:
         return get_user_from_email(email)
     except Exception as e:
