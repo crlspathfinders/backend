@@ -26,7 +26,12 @@ origins = [
     "http://localhost",
     "http://localhost:8080",
     "https://crlspathfinders-frontend.vercel.app",
-    "https://www.crlspathfinders.com"
+    "https://www.crlspathfinders.com",
+    "https://www.crlspathfinders.com/",
+    "crlspathfinders.com",
+    "crlspathfinders.com/",
+    "https://crlspathfinders-backend.vercel.app",
+    "https://crlspathfinders-backend.vercel.app/"
 ]
 
 app.add_middleware(
