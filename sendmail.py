@@ -3,9 +3,15 @@ from email.message import EmailMessage
 import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Normal email sending:
-def send_mail(email_sender, email_password, email_receiver, subject, body):
+def send_mail(email_receiver, subject, body):
+    email_sender = os.environ.get("EMAIL_SENDER")
+    email_password = os.environ.get("EMAIL_PASSWORD")
     em = EmailMessage()
     em['From'] = email_sender
     em['To'] = email_receiver

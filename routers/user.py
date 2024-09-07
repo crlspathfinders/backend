@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from models.usermodel import make_user, change_user, verify_token, get_current_user, get_user_from_email, join_leave_club, change_user_role, delete_user, change_is_leader, change_is_mentor
+from models.usermodel import make_user, change_user, verify_token, get_current_user, get_user_from_email, join_leave_club, change_user_role, delete_user, change_is_leader, change_is_mentor, change_mentor_eligible
 from typing import Annotated, List
 from models.model import get_el_id, get_doc
 from models.clubmodel import get_members, manage_members, get_secret_pass
@@ -146,5 +146,13 @@ def toggle_leader_mentor(toggle: ToggleLeaderMentor):
         except Exception as e:
             print(f"Failed to toggle mentor: {e}")
             return {"status": f"Failed to toggle mentor: {e}"}
+    if toggle.leader_mentor == "Mentor-Eligible":
+        try:
+            change_mentor_eligible(toggle.email, toggle.toggle)
+            print(f"Changed {toggle.email} to {toggle.toggle}")
+            return {"status": "Successfully toggled mentor eligible"}
+        except Exception as e:
+            print(f"Failed to toggle mentor eligible: {e}")
+            return {"status": f"Failed to toggle mentor eligible: {e}"}
     print(f"Wrong / not enough parameters in toggle leader mentor ok.")
     return {"status": "Incorrect parameters"}

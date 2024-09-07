@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List
 from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from sendmail import send_mail
 
 router = APIRouter(
     tags=["mentor"]
@@ -68,3 +69,24 @@ async def set_club_img(upload: SetClubImg):
     else:
         print(f"Failed to update mentor img doc.")
         return {"status": f"Failed to update mentor img doc."}
+
+class MentorPitch(BaseModel):
+    mentor_email: str
+    pitch: str 
+
+@router.post("/sendmentorpitch/")
+async def send_mentor_pitch(mentor_pitch: MentorPitch):
+    receiver = "crlspathfinders25@gmail.com"
+    subject = f"Mentor pitch from {mentor_pitch.mentor_email}"
+    body = f'''Mentor pitch received from {mentor_pitch.mentor_email}
+
+Pitch:
+{mentor_pitch.pitch}
+    '''
+    try:
+        send_mail(receiver, subject, body)
+        print("Sent mentor pitch mail")
+        return {"status": "Sent mentor pitch mail"}
+    except Exception as e:
+        print(f"Failed to send mentor pitch email: {e}")
+        return {"status": f"Failed to send mentor pitch email: {e}"}

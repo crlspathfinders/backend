@@ -34,8 +34,6 @@ async def create_info(club: Club):
         # Make club will make create it as Pending -> will wait for advisor verification to Approve it.
         make_club(club.advisor_email, club.club_days, club.club_description, club.club_name, club.president_email, club.room_number, club.secret_password, club.start_time, club.status, club.vice_president_emails)
         # Now have to send email to advisor with password:
-        sender = os.environ.get("EMAIL_SENDER")
-        password = os.environ.get("EMAIL_PASSWORD")
         receiver = club.advisor_email
         subject = f"CRLS Pathfinders | {club.club_name} Confirmation Code"
         body = f'''CODE: {club.secret_password}
@@ -47,7 +45,7 @@ Once successful, {club.club_name} should appear after hitting "Find a Club."
 If there are any problems, send me an email @25ranjaria@cpsd.us
 '''
         try:
-            send_mail(sender, password, receiver, subject, body)
+            send_mail(receiver, subject, body)
             print("Sent mail")
         except Exception as e:
             print(f"Failed to send mail: {e}")

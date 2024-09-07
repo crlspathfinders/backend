@@ -146,3 +146,16 @@ def change_is_mentor(email, mentor):
     except Exception as e:
         print(f"Failed to change is mentor: {e}")
         return {"status": f"Failed to change is mentor: {e}"}
+    
+def change_mentor_eligible(email, eligible):
+    try:
+        user_id = get_el_id("Users", email)
+        db.collection("Users").document(user_id).update(
+            {
+                "mentor_eligible": eligible
+            }
+        )
+        return {"status": "Successfully changed mentor eligible"}
+    except Exception as e:
+        print(f"Failed to change mentor eligible: {e}")
+        return {"status": f"Failed to change mentor eligible: {e}"}
