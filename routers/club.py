@@ -22,6 +22,7 @@ class Club(BaseModel):
     club_name: str
     president_email: str
     room_number: int
+    google_classroom_link: str
     secret_password: int
     start_time: str
     status: str
@@ -32,7 +33,7 @@ async def create_info(club: Club):
     try:
         # Client side makes sure that the president email and advisor emails are correct, etc.
         # Make club will make create it as Pending -> will wait for advisor verification to Approve it.
-        make_club(club.advisor_email, club.club_days, club.club_description, club.club_name, club.president_email, club.room_number, club.secret_password, club.start_time, club.status, club.vice_president_emails)
+        make_club(club.advisor_email, club.club_days, club.club_description, club.club_name, club.president_email, club.room_number, club.google_classroom_link, club.secret_password, club.start_time, club.status, club.vice_president_emails)
         # Now have to send email to advisor with password:
         receiver = club.advisor_email
         subject = f"CRLS Pathfinders | {club.club_name} Confirmation Code"
@@ -57,7 +58,7 @@ If there are any problems, send me an email @25ranjaria@cpsd.us
 @router.post("/updateclub/")
 async def update_club(club: Club):
     try:
-        change_club(club.advisor_email, club.club_days, club.club_description, club.club_name, club.president_email, club.room_number, club.secret_password, club.start_time, club.status, club.vice_president_emails)
+        change_club(club.advisor_email, club.club_days, club.club_description, club.club_name, club.president_email, club.room_number, club.google_classroom_link, club.secret_password, club.start_time, club.status, club.vice_president_emails)
         return {"status": "Successfully edited club"}
     except Exception as e:
         return {"status": f"Failed to edit club: {e}"}
