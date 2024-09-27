@@ -81,7 +81,7 @@ def create_category(cat_name):
     try:
         db.collection(collection).document(doc_id).update(
             {
-                "categories": all_cats
+                "categories": all_cats 
             }
         )
         print("Successfully created category")
