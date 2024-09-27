@@ -47,6 +47,17 @@ def get_el_id(collection, target):
         for r in results:
             if r["email"] == target:
                 return r["id"]
+    elif collection == "PeerMentorLinks":
+        collection = db.collection(collection)
+        docs = collection.get()
+        results = []
+        for doc in docs:
+            doc_dict = doc.to_dict()
+            doc_dict["id"] = doc.id
+            results.append(doc_dict)
+        for r in results:
+            if r["name"] == target:
+                return r["id"]
     
 def get_collection_id(collection, id):
     try:

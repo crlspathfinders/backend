@@ -8,7 +8,7 @@ from typing import List
 from datetime import timedelta
 from pydantic import BaseModel
 from models.model import get_collection_id, get_collection, get_sub_collection, remove_id
-from routers import user, club, mentor
+from routers import user, club, mentor, peermentor
 
 # from google.cloud import storage
 
@@ -45,6 +45,7 @@ app.add_middleware(
 app.include_router(user.router)
 app.include_router(club.router)
 app.include_router(mentor.router)
+app.include_router(peermentor.router)
 
 # Model schemas:
 
@@ -54,6 +55,10 @@ app.include_router(mentor.router)
 @app.get("/")
 def home():
     return {"status": "rehaan"}
+
+@app.get("/testonetwothree")
+def test():
+    return {"hello": "world"}
 
 @app.get("/read/{collection}/{id}")
 async def read_document(collection: str, id: str):

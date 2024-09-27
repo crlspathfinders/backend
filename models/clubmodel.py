@@ -12,7 +12,7 @@ def make_club(advisor_email, club_days, club_description, club_name, president_e
     collection = "Clubs"
     standard_img = "https://firebasestorage.googleapis.com/v0/b/crlspathfinders-82886.appspot.com/o/club-images%2Felementor-placeholder-image.webp?alt=media&token=d841393a-df8c-4ea6-9622-58b0e7ae89cd"
     try:
-        result = db.collection(collection).add(
+        db.collection(collection).add(
             {
                 "advisor_email": advisor_email,
                 "club_days": club_days,
@@ -59,6 +59,7 @@ def make_club(advisor_email, club_days, club_description, club_name, president_e
             print(f"Failed to change pres / vp role: {e}")
         return {"status": "Success"}
     except Exception as e:
+        print(f"Failed to make club: {e}")
         return {"status": f"Failed: {str(e)}"}
     
 def change_club(advisor_email, club_days, club_description, club_name, president_email, room_number, secret_password, start_time, status, vice_presidents_emails):
