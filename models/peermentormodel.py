@@ -1,4 +1,4 @@
-from .model import db, get_el_id, get_doc, storage, get_collection_id
+from .model import db, get_el_id, get_doc, storage, get_collection_id, get_collection_python
 from .usermodel import change_user_role, change_is_mentor
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from uuid import uuid4
@@ -101,8 +101,19 @@ def delete_category(cat_name):
                 "categories": all_cats
             }
         )
-        print("Successfully delete category")
-        return {"status": "Successfully delete category"}
+        print("Successfully deleted category")
+        # When deleting category, also have to remove this category from all of the peer mentor links who have this category listed:
+        pml = get_collection_python("PeerMentorLinks")
+        for p in pml:
+            if cat_name in p["categories"]:
+                curr_cats = p["categories"]
+                curr_cats.remove(cat_name)
+                db.collection("PeerMentorLinks").document(p["id"]).update(
+                    {
+                        "categories": curr_cats
+                    }
+                )
+        return {"status": "Successfully deleted category"}
     except Exception as e:
         print(f"Failed to delete category: {e}")
         return {"status": f"Failed to delete category: {e}"}
