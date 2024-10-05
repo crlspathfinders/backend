@@ -56,6 +56,11 @@ app.include_router(peermentor.router)
 def home():
     return {"status": "rehaan"}
 
+@app.get("/add/{num1}/{num2}")
+def add_nums(num1: int, num2: int):
+    result = num1 + num2
+    return {"data": result}
+
 @app.get("/testonetwothree")
 def test():
     return {"hello": "world"}
