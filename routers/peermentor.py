@@ -11,12 +11,14 @@ class Link(BaseModel):
     link_name: str
     link_url: str
     categories: List[str]
+    bio: str
+    deadline: str
 
 @router.post("/addlink/")
 async def add_link(link: Link):
     try:
         # TO-DO later: Make sure the name is unique.
-        create_link(link.link_name, link.link_url, link.categories)
+        create_link(link.link_name, link.link_url, link.categories, link.bio, link.deadline)
         print(f"Successfully created pml link: {link.link_name}")
         return {"status": "Successfully created pml link"}
     except Exception as e:
@@ -37,11 +39,13 @@ class EditLink(BaseModel):
     new_name: str
     new_url: str
     categories: List[str]
+    bio: str
+    deadline: str
 
 @router.post("/editlink/")
 async def edit_link(edit_link: EditLink):
     try:
-        update_link(edit_link.old_name, edit_link.new_name, edit_link.new_url, edit_link.categories)
+        update_link(edit_link.old_name, edit_link.new_name, edit_link.new_url, edit_link.categories, edit_link.bio, edit_link.deadline)
         return {"status": "Successfully edited link"}
     except Exception as e:
         print(f"Failed to edit link: {e}")

@@ -4,7 +4,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from uuid import uuid4
 from io import BytesIO
 
-def create_link(link_name, link_url, categories):
+def create_link(link_name, link_url, categories, bio, deadline):
     collection = "PeerMentorLinks"
     print("make peermentorlink begin")
     try:
@@ -12,7 +12,9 @@ def create_link(link_name, link_url, categories):
             {
                 "name": link_name,
                 "src": link_url,
-                "categories": categories
+                "categories": categories,
+                "bio": bio,
+                "deadline": deadline
             }
         )
         return {"status": "Success"}
@@ -31,7 +33,7 @@ def remove_link(name):
         print(f"Failed to delete link: {e}")
         return {"status": f"Failed to remove link: {e}"}
     
-def update_link(oldname, newname, newurl, categories):
+def update_link(oldname, newname, newurl, categories, bio, deadline):
     print(categories)
     collection = "PeerMentorLinks"
     try:
@@ -44,7 +46,9 @@ def update_link(oldname, newname, newurl, categories):
             {
                 "name": newname,
                 "src": newurl,
-                "categories": categories
+                "categories": categories,
+                "bio": bio,
+                "deadline": deadline
             }
         )
         return {"status": "Successfully updated link"}
