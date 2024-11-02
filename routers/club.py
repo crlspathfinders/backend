@@ -39,11 +39,29 @@ async def create_info(club: Club):
         subject = f"CRLS Pathfinders | {club.club_name} Confirmation Code"
         body = f'''CODE: {club.secret_password}
 
-{club.president_email} is registering their club on the CRLS PathFinders website.
-To verify {club.club_name}, log into the PathFinders website, select your email in the top right corner, hit "Verify Club," and then input the code above.
+{club.president_email} is registering their club on the CRLS PathFinders website, crlspathfinders.com.
+To verify {club.club_name}, you can either email them your code, and they can verify themself, or you can log into the PathFinders website, select your email in the top right corner, hit "Verify Club," and then input the code above.
 Once successful, {club.club_name} should appear after hitting "Find a Club."
 
-If there are any problems, send me an email @25ranjaria@cpsd.us
+Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
+'''
+        try:
+            send_mail(receiver, subject, body)
+            print("Sent mail")
+        except Exception as e:
+            print(f"Failed to send mail: {e}")
+            return {"status": f"Failed to send mail: {e}"}
+        
+        # Now send email to the club president:
+        receiver = club.president_email
+        subject = f"CRLS Pathfinders | {club.club_name} Registration Submitted"
+        body = f'''Hello {club.president_email},
+
+We have recieved {club.club_name}'s registration. Your advisor has recieved an email with a code to verify the club on the site.
+To verify {club.club_name}, ask your advisor for the code, log into crlspathfinders.com, select your email in the top right corner, hit "Verify Club," and then input that code.
+Once successful, {club.club_name} will appear after hitting "Find a Club."
+
+Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
 '''
         try:
             send_mail(receiver, subject, body)
