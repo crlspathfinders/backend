@@ -20,3 +20,4 @@ passlib==1.7.4
 fastapi-users==13.0.0
 python-dotenv==1.0.1
 pillow==10.4.0
+requests-cache==1.2.1
