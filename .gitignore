@@ -5,4 +5,3 @@ new_venv/
 routers/testenv.py
 models/testenv.py
 routers/routers_venv
-cache/
