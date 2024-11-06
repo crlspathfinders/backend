@@ -10,6 +10,11 @@ from pydantic import BaseModel
 from models.model import get_collection_id, get_collection, get_sub_collection, remove_id
 from routers import user, club, mentor, peermentor
 from requests_cache import CachedSession
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+curr_url = os.environ.get("CURR_URL")
 
 # from google.cloud import storage
 
@@ -56,13 +61,13 @@ app.include_router(peermentor.router)
 # Caching:
 
 cached_mentors = CachedSession(
-    cache_name="cache/Mentors",
+    cache_name="cache/DATA",
     expire_after=60 # 1 min
 )
 
 @app.get("/cache/{collection}")
 def cache_mentors(collection: str):
-    mentors = cached_mentors.get(f"http://127.0.0.1:8000/read/{collection}")
+    mentors = cached_mentors.get(f"{curr_url}/read/{collection}")
     return mentors.json()
 
 @app.get("/")
