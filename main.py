@@ -9,6 +9,7 @@ from datetime import timedelta
 from pydantic import BaseModel
 from models.model import get_collection_id, get_collection, get_sub_collection, remove_id
 from routers import user, club, mentor, peermentor
+from requests_cache import CachedSession
 
 # from google.cloud import storage
 
@@ -51,6 +52,18 @@ app.include_router(peermentor.router)
 
 # uvicorn main:app --reload
 # Read a document:
+
+# Caching:
+
+cached_mentors = CachedSession(
+    cache_name="cache/Mentors",
+    expire_after=60 # 1 min
+)
+
+@app.get("/cache/{collection}")
+def cache_mentors(collection: str):
+    mentors = cached_mentors.get(f"http://127.0.0.1:8000/read/{collection}")
+    return mentors.json()
 
 @app.get("/")
 def home():
