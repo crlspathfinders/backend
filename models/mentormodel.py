@@ -66,6 +66,8 @@ def remove_mentor(email):
     except Exception as e:
         return {"status": f"Failed to delete mentor: {e}"}
     
+# Make function that deletes old mentor image (look on google or chatgpt how to delte firebase storage images from a url)
+
 def upload_mentor_image(file: UploadFile = File(...)):
     try:
         # Generate a unique file name

@@ -46,6 +46,14 @@ async def delete_mentor(email: str):
     except Exception as e:
         return {"status": f"Failed to delete mentor: {e}"}
     
+# Make router that accepts deleted image and calls the function to delete the image in mentormodel.py
+'''
+@router.get("/deleteimage/{old_url})
+def delete_img(old_url: str):
+    return handle_delete_img(old_url)
+'''
+# Something like that^
+
 @router.post("/uploadmentorimage/")
 async def upload_image(file: UploadFile = File(...)):
     print(file)
