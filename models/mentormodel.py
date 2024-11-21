@@ -99,3 +99,18 @@ def set_mentor_image_doc(mentor_email, img_url):
     except Exception as e:
         print(f"Failed to update mentor img doc: {e}")
         return {"status": f"Failed to update mentor img doc: {e}"}
+    
+def show_or_hide_mentor(mentor_email):
+    doc_id = get_el_id("Mentors", mentor_email)
+    mentor = get_doc("Mentors", doc_id)
+    toggle = not mentor["show"]
+    # print(not toggle)
+    try:
+        db.collection("Mentors").document(doc_id).update(
+            {
+                "show": toggle
+            }
+        )
+    except Exception as e:
+        print(f"Failed to show or hide mentor: {e}")
+        return {"status": f"Failed to show or hide mentor: {e}"}

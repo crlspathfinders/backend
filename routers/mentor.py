@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
-from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc
+from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc, show_or_hide_mentor
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from sendmail import send_mail
 
@@ -161,3 +161,7 @@ Abel Asefaw '25
         return {"status": "Successfully send logging email"}
     except Exception as e:
         return {"status": "Failed to send logging email: {e}"}
+
+@router.get("/toggleshowmentor/{mentor_email}/")
+def toggle_show_mentor(mentor_email: str):
+    return show_or_hide_mentor(mentor_email)
