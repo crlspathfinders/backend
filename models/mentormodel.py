@@ -20,7 +20,8 @@ def make_mentor(firstname, lastname, bio, email, race, religion, gender, languag
                 "gender": gender,
                 "languages": languages,
                 "academics": academics,
-                "profile_pic": ""
+                "profile_pic": "",
+                "show": True
                 # Need to add img_url
             }
         )
