@@ -97,3 +97,11 @@ def set_mentor_image_doc(mentor_email, img_url):
     except Exception as e:
         print(f"Failed to update mentor img doc: {e}")
         return {"status": f"Failed to update mentor img doc: {e}"}
+
+def delete_mentor_image(file_name):
+    try:
+        blob = storage.bucket().blob(f'mentor-images/{file_name}')
+        blob.delete()
+        print(f"Successfully deleted image: {file_name}")
+    except Exception as e:
+        print(f"Failed to delete image: {e}")

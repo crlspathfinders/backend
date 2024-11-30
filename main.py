@@ -11,7 +11,6 @@ from models.model import get_collection_id, get_collection, get_sub_collection, 
 from routers import user, club, mentor, peermentor
 from requests_cache import CachedSession
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 curr_url = os.environ.get("CURR_URL")

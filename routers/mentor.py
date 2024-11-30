@@ -1,8 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, File, UploadFile, Form, HTTPException
 from pydantic import BaseModel
-from typing import List
-from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from typing import List, Optional
+from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc, delete_mentor_image
 from sendmail import send_mail
 
 router = APIRouter(
@@ -47,9 +46,15 @@ async def delete_mentor(email: str):
         return {"status": f"Failed to delete mentor: {e}"}
     
 @router.post("/uploadmentorimage/")
-async def upload_image(file: UploadFile = File(...)):
+async def upload_image(file: UploadFile = File(...), old_file_name: Optional[str] = Form(None)):
     print(file)
     try:
+        # Validate file type
+        if file.content_type not in ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]:
+            raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG, JPG, PNG, WEBP, and GIF are allowed.")
+        if old_file_name:
+            delete_mentor_image(old_file_name)
+            
         img_url = upload_mentor_image(file)
         print(f"successfully uploaded mentor img: {img_url}")
         return {"status": img_url}
@@ -67,8 +72,8 @@ async def set_club_img(upload: SetClubImg):
         set_mentor_image_doc(upload.mentor_email, upload.img_url)
         return {"status": "Successfully updated mentor img doc"}
     else:
-        print(f"Failed to update mentor img doc.")
-        return {"status": f"Failed to update mentor img doc."}
+        print("Failed to update mentor img doc.")
+        return {"status": "Failed to update mentor img doc."}
 
 class MentorPitch(BaseModel):
     mentor_email: str
