@@ -61,8 +61,8 @@ app.include_router(peermentor.router)
 # Caching:
 
 cached_mentors = CachedSession(
-    cache_name="cache/DATA",
-    expire_after=30 # 1 min
+    cache_name="cache/Mentors",
+    expire_after=10 # 10 s
 )
 
 @app.get("/cache/{collection}")

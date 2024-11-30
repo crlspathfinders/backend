@@ -1,9 +1,15 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
-from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc, show_or_hide_mentor
+from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc, show_or_hide_mentor, update_mentor_hours, update_hours_worked_catalog, confirm_mentor_mentee_logging
+from models.usermodel import update_mentee_catalog
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from sendmail import send_mail
+import uuid, os, datetime
+from dotenv import load_dotenv
+
+load_dotenv()
+curr_url = os.environ.get("CURR_URL")
 
 router = APIRouter(
     tags=["mentor"]
@@ -107,8 +113,11 @@ class MentorMenteeLog(BaseModel):
 
 @router.post("/mentormenteelogs/")
 def log_mentor_mentee(log: MentorMenteeLog):
+    print("started mentormentee logs")
     # Send crlspathfinders25 the log, send mentor the confirmation, and send mentee the confirmation.
     try:
+
+        catalog_id = str(uuid.uuid4())
 
         # Send to crlspathfinders25:
         receiver = "crlspathfinders25@gmail.com"
@@ -119,7 +128,8 @@ Description: {log.log_description}
 
 Hours: {log.log_hours}
 '''
-        send_mail(receiver, subject, body)    
+        send_mail(receiver, subject, body) 
+        print("sent cp email")   
         
         # Send email to mentor:
         receiver = log.mentor_email
@@ -128,6 +138,8 @@ Hours: {log.log_hours}
 
 You have successfully logged your hours. The CRLS PathFinders team has recieved your hours, and a confirmation email has been sent to your mentee, {log.mentee_email}. Once they have confirmed that the hours are correct, your hours will be logged and you can receieve community service hours for your work.
 Below are your responses. To change anything, please send an email to crlspathfinders25@gmail.com or just fill out a new form.
+
+Mentee: {log.mentee_email}
 
 Description: {log.log_description}
 
@@ -139,6 +151,23 @@ Rehaan Anjaria '25
 Abel Asefaw '25
 '''
         send_mail(receiver, subject, body)
+        print("sent mentor email")
+
+        # Update mentor total_hours_worked
+        # try:
+        #     update_mentor_hours(log.mentor_email, log.log_hours)
+        #     print("Successfully updated mentor hours")
+        # except Exception as e:
+        #     print(f"Failed to update mentor hours: {e}")
+
+        # Update catalog data:
+        try:
+            date = datetime.date.today()
+            status = -1 # -1 means mentee not confirmed, 0 means mentee confirmed.
+            update_hours_worked_catalog(catalog_id, log.mentor_email, log.mentee_email, log.log_description, log.log_hours, date, status)
+            print("Successfully updated mentor hours")
+        except Exception as e:
+            print(f"Failed to update mentor catalog: {e}")
 
         # Send email to mentee:
         receiver = log.mentee_email
@@ -151,6 +180,8 @@ Please confirm that the below hours are correct. If you have any questions pleas
 
 Hours: {log.log_hours}
 
+To confirm that you and your mentor, {log.mentor_email}, have worked {log.log_hours} hours, please go to http://localhost:5173/confirmmenteehours/{int(-1)}/{catalog_id}/{log.mentee_email}/{log.mentor_email}/{log.log_hours}/NoDescription/
+
 Thank you,
 CRLS PathFinders,
 Rehaan Anjaria '25
@@ -158,10 +189,43 @@ Abel Asefaw '25
 '''
             
         send_mail(receiver, subject, body)
+        print("sent mentee email")
         return {"status": "Successfully send logging email"}
     except Exception as e:
-        return {"status": "Failed to send logging email: {e}"}
+        print(f"Failed to send logging email: {e}")
+        return {"status": f"Failed to send logging email: {e}"}
 
 @router.get("/toggleshowmentor/{mentor_email}/")
 def toggle_show_mentor(mentor_email: str):
     return show_or_hide_mentor(mentor_email)
+
+@router.get("/menteeconfirmhours/{confirm}/{catalog_id}/{mentee_email}/{mentor_email}/{mentee_hours}/{mentee_description}")
+def mentee_confirm_hours(confirm: int, catalog_id: str, mentee_email: str, mentor_email: str, mentee_hours: int, mentee_description: str):
+    # First check if confirm is True
+        # If true, first change mentee is_mentor to True, and update their mentee logs with their own description, timestamp, hours worked, and with which mentor they worked.
+        # Then, update mentor logs.
+    if confirm == 0: # 0 = yes, -1 = no
+        log_status = confirm_mentor_mentee_logging(catalog_id, mentee_email, mentor_email, mentee_hours)
+        if log_status["status"] == 0:
+            # do the mentee logging
+            print("mentor log found")
+            mentor_log = log_status["mentor_log"]
+            date_met = mentor_log["date"]
+            date_confirmed = datetime.date.today()
+            update_mentee_catalog(catalog_id, mentee_email, mentor_email, mentee_hours, mentee_description, str(date_confirmed), date_met)
+        elif log_status["status"] == -2: # Mismatching hours:
+            print("hours do not match confirmed")
+            return {"status": -2, "error_message": "Hours do not match." }
+        else:
+            print(f"Failed to confirm mentor mentee logging: {log_status["error_message"]}")
+            return {"status": -1, "error_message": f"Failed to confirm mentor mentee logging: {log_status["error_message"]}"}
+        # If go to here, that means all has worked. Now send confirmation email to crlspathfinders25@gmail.com.
+        receiver = "crlspathfinders25@gmail.com"
+        subject = f"{mentee_email} Confirmation Successful"
+        body = f'''As of {date_confirmed}, {mentee_email} has confirmed {mentor_email}'s hours log of {mentee_hours}.
+
+Mentee Description: {mentee_description}
+'''
+        send_mail(receiver, subject, body)
+        return {"status": 0}
+    return {"status": -1, "error_message": "confirm came back false (0)"}
