@@ -3,6 +3,7 @@ from .usermodel import change_user_role, change_is_mentor
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from uuid import uuid4
 from io import BytesIO
+import uuid
 from urllib.parse import urlparse
 
 def make_mentor(firstname, lastname, bio, email, race, religion, gender, languages, academics):
@@ -22,8 +23,9 @@ def make_mentor(firstname, lastname, bio, email, race, religion, gender, languag
                 "languages": languages,
                 "academics": academics,
                 "profile_pic": "",
-                "show": True
-                # Need to add img_url
+                "show": True,
+                "total_hours_worked": 0,
+                "hours_worked_catalog": []
             }
         )
         print(result)
@@ -37,7 +39,7 @@ def make_mentor(firstname, lastname, bio, email, race, religion, gender, languag
         return {"status": "Success"}
     except Exception as e:
         return {"status": f"Failed: {str(e)}"}
-
+    
 def change_mentor(firstname, lastname, bio, email, race, religion, gender, languages, academics):
     collection = "Mentors"
     doc_id = get_el_id("Mentors", email)
@@ -59,7 +61,7 @@ def change_mentor(firstname, lastname, bio, email, race, religion, gender, langu
         return {"status": "Success"}
     except Exception as e:
         return {"status": f"Failed: {str(e)}"}
-
+    
 def remove_mentor(email):
     doc_id = get_el_id("Mentors", email)
     try:
@@ -67,8 +69,9 @@ def remove_mentor(email):
         return {"Status": "Successfully deleted mentor"}
     except Exception as e:
         return {"status": f"Failed to delete mentor: {e}"}
-
+    
 # Make function that deletes old mentor image (look on google or chatgpt how to delte firebase storage images from a url)
+
 def upload_mentor_image(file: UploadFile = File(...)):
     try:
         # Generate a unique file name
@@ -86,12 +89,25 @@ def upload_mentor_image(file: UploadFile = File(...)):
     except Exception as e:
         print(f"Failed to upload img: {e}")
         return "Failed"
+    
+def extract_relative_path(full_url):
+    """
+    Extract the relative path from the full Firebase Storage URL.
+    """
+    parsed_url = urlparse(full_url)
+    # Firebase Storage URL paths start with '/v0/b/{bucket}/o/{path}', so we extract 'path'
+    path = parsed_url.path.split("/o/")[-1] if "/o/" in parsed_url.path else parsed_url.path
+    return path.replace('%2F', '/')  # Decode URL-encoded slashes
 
 def delete_mentor_image(file_name):
     print(f"file_name: {file_name}")
+    new_file_name = extract_relative_path(file_name)
     to_delete = "https://storage.googleapis.com/crlspathfinders-82886.appspot.com/"
     new_new_file_name = file_name[len(to_delete):]
     print(f"new_new_file_name: {new_new_file_name}")
+    print(f"new_file_name: {new_file_name}")
+    # if file_path_or_url.startswith("http"):
+    #     file_path_or_url = extract_relative_path(file_path_or_url)
     try:
         blob = storage.bucket().blob(new_new_file_name)
         print(blob)
@@ -114,14 +130,6 @@ def set_mentor_image_doc(mentor_email, img_url):
         print(f"Failed to update mentor img doc: {e}")
         return {"status": f"Failed to update mentor img doc: {e}"}
     
-def delete_mentor_image(file_name):
-    try:
-        blob = storage.bucket().blob(f'mentor-images/{file_name}')
-        blob.delete()
-        print(f"Successfully deleted image: {file_name}")
-    except Exception as e:
-        print(f"Failed to delete image: {e}")
-        
 def show_or_hide_mentor(mentor_email):
     doc_id = get_el_id("Mentors", mentor_email)
     mentor = get_doc("Mentors", doc_id)
@@ -136,7 +144,7 @@ def show_or_hide_mentor(mentor_email):
     except Exception as e:
         print(f"Failed to show or hide mentor: {e}")
         return {"status": f"Failed to show or hide mentor: {e}"}
-
+    
 def update_mentor_hours(mentor_email, hours):
     # hours could be a negative number as well to reduce the total_hours_worked amount.
     doc_id = get_el_id("Mentors", mentor_email)
