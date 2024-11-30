@@ -3,7 +3,6 @@ from .usermodel import change_user_role, change_is_mentor
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from uuid import uuid4
 from io import BytesIO
-import uuid
 
 def make_mentor(firstname, lastname, bio, email, race, religion, gender, languages, academics):
     # Need to pass in the id, etc for which collection to actually change.
@@ -22,9 +21,8 @@ def make_mentor(firstname, lastname, bio, email, race, religion, gender, languag
                 "languages": languages,
                 "academics": academics,
                 "profile_pic": "",
-                "show": True,
-                "total_hours_worked": 0,
-                "hours_worked_catalog": []
+                "show": True
+                # Need to add img_url
             }
         )
         print(result)
@@ -38,7 +36,7 @@ def make_mentor(firstname, lastname, bio, email, race, religion, gender, languag
         return {"status": "Success"}
     except Exception as e:
         return {"status": f"Failed: {str(e)}"}
-    
+
 def change_mentor(firstname, lastname, bio, email, race, religion, gender, languages, academics):
     collection = "Mentors"
     doc_id = get_el_id("Mentors", email)
@@ -60,7 +58,7 @@ def change_mentor(firstname, lastname, bio, email, race, religion, gender, langu
         return {"status": "Success"}
     except Exception as e:
         return {"status": f"Failed: {str(e)}"}
-    
+
 def remove_mentor(email):
     doc_id = get_el_id("Mentors", email)
     try:
@@ -68,9 +66,8 @@ def remove_mentor(email):
         return {"Status": "Successfully deleted mentor"}
     except Exception as e:
         return {"status": f"Failed to delete mentor: {e}"}
-    
-# Make function that deletes old mentor image (look on google or chatgpt how to delte firebase storage images from a url)
 
+# Make function that deletes old mentor image (look on google or chatgpt how to delte firebase storage images from a url)
 def upload_mentor_image(file: UploadFile = File(...)):
     try:
         # Generate a unique file name
@@ -88,7 +85,7 @@ def upload_mentor_image(file: UploadFile = File(...)):
     except Exception as e:
         print(f"Failed to upload img: {e}")
         return "Failed"
-    
+
 def set_mentor_image_doc(mentor_email, img_url):
     mentor_id = get_el_id("Mentors", mentor_email)
     print(f"mentor id: {mentor_id}, email: {mentor_email}")
@@ -125,80 +122,3 @@ def show_or_hide_mentor(mentor_email):
     except Exception as e:
         print(f"Failed to show or hide mentor: {e}")
         return {"status": f"Failed to show or hide mentor: {e}"}
-    
-def update_mentor_hours(mentor_email, hours):
-    # hours could be a negative number as well to reduce the total_hours_worked amount.
-    doc_id = get_el_id("Mentors", mentor_email)
-    mentor = get_doc("Mentors", doc_id)
-    curr_hours = mentor["total_hours_worked"]
-    new_hours = int(curr_hours) + int(hours)
-    try:
-        db.collection("Mentors").document(doc_id).update(
-            {
-                "total_hours_worked": new_hours
-            }
-        )
-        return {"status": "Success"}
-    except Exception as e:
-        print(f"Failed to update mentor hours: {e}")
-        return {"status": f"Failed to update mentor hours: {e}"}
-    
-def update_hours_worked_catalog(catalog_id, mentor_email, mentee_email, description, hours_worked, date, status):
-    new_catalog = {
-        "id": catalog_id,
-        "mentee": mentee_email,
-        "description": description,
-        "hours": hours_worked,
-        "date": str(date),
-        "status": status
-    }
-    doc_id = get_el_id("Mentors", mentor_email)
-    mentor = get_doc("Mentors", doc_id)
-    whole_catalog = mentor["hours_worked_catalog"]
-    whole_catalog.append(new_catalog)
-    try:
-        db.collection("Mentors").document(doc_id).update(
-            {
-                "hours_worked_catalog": whole_catalog
-            }
-        )
-        return {"status": "Success"}
-    except Exception as e:
-        print(f"Failed to update mentor hours: {e}")
-        return {"status": f"Failed to update mentor hours: {e}"}
-    
-def confirm_mentor_mentee_logging(catalog_id, mentee_email, mentor_email, mentee_hours):
-    mentor_id = get_el_id("Mentors", mentor_email)
-    mentor = get_doc("Mentors", mentor_id)
-    # mentee = get_doc("Users", mentee_id)
-    # Update mentor catalog with confirmed status
-    try:
-        catalog = mentor["hours_worked_catalog"]
-        print(catalog)
-        for h in catalog:
-            print(h)
-            if h["id"] == catalog_id and h["mentee"] == mentee_email:
-                print("catalog found")
-                if h["status"] == 0: # This has already been changed, so skip
-                    return {"status": -1, "error_message": "This log has already been confirmed."}
-                if h["hours"] == str(mentee_hours):
-                    print("found correct catalog with correct hours")
-                    curr_catalog = h
-                    curr_catalog["status"] = 0
-                    catalog[catalog.index(h)] = curr_catalog
-                    db.collection("Mentors").document(mentor_id).update(
-                        {
-                            "hours_worked_catalog": catalog
-                        }
-                    )
-                    print("updated collection")
-                    # Only updates the mentor hours once the mentee has confirmed.
-                    update_mentor_hours(mentor_email, mentee_hours)
-                    print("updated mentor hours")
-                    return {"status": 0, "mentor_log": h}
-                else:
-                    print("mismatching hours reported")
-                    return {"status": -2, "error_message": "Mismatching hours reported."}
-        return {"status": -1, "error_message": "No matching catalog id found"}
-    except Exception as e:
-        return {"status": -1, "error_message": e}
