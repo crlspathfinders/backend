@@ -2,7 +2,7 @@
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc, show_or_hide_mentor, update_mentor_hours, update_hours_worked_catalog, confirm_mentor_mentee_logging, delete_mentor_image
+from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc, show_or_hide_mentor, update_mentor_hours, update_hours_worked_catalog, confirm_mentor_mentee_logging, delete_mentor_image, get_mentor_description
 from models.usermodel import update_mentee_catalog
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from sendmail import send_mail
@@ -245,9 +245,14 @@ def mentee_confirm_hours(mentee_log: MenteeConfirmHours):
         # If go to here, that means all has worked. Now send confirmation email to crlspathfinders25@gmail.com:
         receiver = "crlspathfinders25@gmail.com"
         subject = f"{mentee_email} Confirmation Successful"
+        mentor_description = get_mentor_description(mentor_email, catalog_id)
+        if mentor_description["status"] == -1:
+            return {"status": -1, "error_message": "Matching mentor description could not be found. Contact support."}
+        mentor_description = mentor_description["desc"]
         body = f'''As of {date_confirmed}, {mentee_email} has confirmed {mentor_email}'s hours log of {mentee_hours}.
 
 Mentee Description: {mentee_description}
+Mentor Description: {mentor_description}
 '''
         send_mail(receiver, subject, body)
 

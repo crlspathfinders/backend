@@ -221,3 +221,14 @@ def confirm_mentor_mentee_logging(catalog_id, mentee_email, mentor_email, mentee
         return {"status": -1, "error_message": "No matching catalog id found"}
     except Exception as e:
         return {"status": -1, "error_message": e}
+
+def get_mentor_description(mentor_email, target_catalog_id):
+    mentor_id = get_el_id("Mentors", mentor_email)
+    mentor = get_doc("Mentors", mentor_id)
+    catalog = mentor["hours_worked_catalog"]
+
+    for c in catalog:
+        if c["id"] == target_catalog_id:
+            return {"status": 0, "desc": c["description"]}
+        
+    return {"status": -1, "error_message": "No matching catalog found"}
