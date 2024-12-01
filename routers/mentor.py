@@ -128,7 +128,7 @@ def log_mentor_mentee(log: MentorMenteeLog):
 
         # Send to crlspathfinders25:
         receiver = "crlspathfinders25@gmail.com"
-        subject = f"Mentor-Mentee Logging form from {log.mentor_email}"
+        subject = f"Mentor-Mentee Logging Form from {log.mentor_email}"
         body = f'''{log.mentor_email} has submitted a logging form.
 
 Description: {log.log_description}
@@ -140,7 +140,7 @@ Hours: {log.log_hours}
         
         # Send email to mentor:
         receiver = log.mentor_email
-        subject = f"Confirmation of Mentor-Mentee Logging form"
+        subject = f"Confirmation of Mentor-Mentee Logging Form"
         body = f'''Hello,
 
 You have successfully logged your hours. The CRLS PathFinders team has recieved your hours, and a confirmation email has been sent to your mentee, {log.mentee_email}. Once they have confirmed that the hours are correct, your hours will be logged and you can receieve community service hours for your work.
@@ -178,7 +178,7 @@ Abel Asefaw '25
 
         # Send email to mentee:
         receiver = log.mentee_email
-        subject = f"Mentor-Mentee Logging form from {log.mentor_email}"
+        subject = f"Mentor-Mentee Logging Form from {log.mentor_email}"
         body = f'''Hello,
 
 Your mentor, {log.mentor_email}, has submitted a logging form. If they are not your mentor, please ignore this message.
@@ -222,6 +222,7 @@ def mentee_confirm_hours(mentee_log: MenteeConfirmHours):
     mentor_email = mentee_log.mentor_email
     mentee_hours = mentee_log.mentee_hours
     mentee_description = mentee_log.mentee_description
+    print(mentee_log)
     # First check if confirm is True
         # If true, first change mentee is_mentor to True, and update their mentee logs with their own description, timestamp, hours worked, and with which mentor they worked.
         # Then, update mentor logs.
@@ -240,7 +241,8 @@ def mentee_confirm_hours(mentee_log: MenteeConfirmHours):
         else:
             print(f"Failed to confirm mentor mentee logging: {log_status["error_message"]}")
             return {"status": -1, "error_message": f"Failed to confirm mentor mentee logging: {log_status["error_message"]}"}
-        # If go to here, that means all has worked. Now send confirmation email to crlspathfinders25@gmail.com.
+        
+        # If go to here, that means all has worked. Now send confirmation email to crlspathfinders25@gmail.com:
         receiver = "crlspathfinders25@gmail.com"
         subject = f"{mentee_email} Confirmation Successful"
         body = f'''As of {date_confirmed}, {mentee_email} has confirmed {mentor_email}'s hours log of {mentee_hours}.
@@ -248,5 +250,24 @@ def mentee_confirm_hours(mentee_log: MenteeConfirmHours):
 Mentee Description: {mentee_description}
 '''
         send_mail(receiver, subject, body)
+
+        # Send confirmation email to mentor:
+        n_receiver = mentor_email
+        n_subject = f"{mentee_email} Mentee Confirmation Successful"
+        n_body = f'''Hello,
+
+{mentee_email} has confirmed that you have worked {mentee_hours} hours together on {date_met}.
+You can now go back to crlspathfinders.com/findamentor and click on "Log Mentor Hours" to see your completed hours.
+
+Let us know if there are any problems,
+CRLS PathFinders,
+Rehaan Anjaria '25
+Abel Asefaw '25
+'''
+        print(n_receiver)
+        print(n_subject)
+        print(n_body)
+        send_mail(n_receiver, n_subject, n_body)
+
         return {"status": 0}
     return {"status": -1, "error_message": "confirm came back false (0)"}
