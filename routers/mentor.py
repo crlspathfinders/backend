@@ -187,7 +187,7 @@ Please confirm that the below hours are correct. If you have any questions pleas
 
 Hours: {log.log_hours}
 
-To confirm that you and your mentor, {log.mentor_email}, have worked {log.log_hours} hours, please go to http://localhost:5173/confirmmenteehours/{int(-1)}/{catalog_id}/{log.mentee_email}/{log.mentor_email}/{log.log_hours}/NoDescription/
+To confirm that you and your mentor, {log.mentor_email}, have worked {log.log_hours} hours, please go to crlspathfinders.com/confirmmenteehours/{int(-1)}/{catalog_id}/{log.mentee_email}/{log.mentor_email}/{log.log_hours}/NoDescription/
 
 Thank you,
 CRLS PathFinders,
