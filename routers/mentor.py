@@ -206,8 +206,22 @@ Abel Asefaw '25
 def toggle_show_mentor(mentor_email: str):
     return show_or_hide_mentor(mentor_email)
 
-@router.get("/menteeconfirmhours/{confirm}/{catalog_id}/{mentee_email}/{mentor_email}/{mentee_hours}/{mentee_description}")
-def mentee_confirm_hours(confirm: int, catalog_id: str, mentee_email: str, mentor_email: str, mentee_hours: int, mentee_description: str):
+class MenteeConfirmHours(BaseModel):
+    confirm: int
+    catalog_id: str
+    mentee_email: str
+    mentor_email: str
+    mentee_hours: str
+    mentee_description: str
+
+@router.post("/menteeconfirmhours/")
+def mentee_confirm_hours(mentee_log: MenteeConfirmHours):
+    confirm = mentee_log.confirm
+    catalog_id = mentee_log.catalog_id
+    mentee_email = mentee_log.mentee_email
+    mentor_email = mentee_log.mentor_email
+    mentee_hours = mentee_log.mentee_hours
+    mentee_description = mentee_log.mentee_description
     # First check if confirm is True
         # If true, first change mentee is_mentor to True, and update their mentee logs with their own description, timestamp, hours worked, and with which mentor they worked.
         # Then, update mentor logs.
