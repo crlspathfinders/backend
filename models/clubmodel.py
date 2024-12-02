@@ -158,14 +158,6 @@ def upload_club_image(file: UploadFile = File(...)):
         print(f"Failed to upload img: {e}")
         return "Failed"
     
-def delete_club_image(file_name):
-    try:
-        blob = storage.bucket().blob(f'club-images/{file_name}')
-        blob.delete()
-        print(f"Successfully deleted image: {file_name}")
-    except Exception as e:
-        print(f"Failed to delete image: {e}")
-        
 def set_club_image_doc(club_id, img_url):
     try:
         db.collection("Clubs").document(club_id).update(
