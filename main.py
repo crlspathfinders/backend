@@ -7,10 +7,11 @@ from fastapi.responses import StreamingResponse
 from typing import List
 from datetime import timedelta
 from pydantic import BaseModel
-from models.model import get_collection_id, get_collection, get_sub_collection, remove_id
+from models.model import get_collection_id, get_collection, get_sub_collection, remove_id, get_collection_python
 from routers import user, club, mentor, peermentor
 from requests_cache import CachedSession
 from dotenv import load_dotenv
+from sendmail import send_mail
 
 load_dotenv()
 curr_url = os.environ.get("CURR_URL")
@@ -36,7 +37,8 @@ origins = [
     "crlspathfinders.com",
     "crlspathfinders.com/",
     "https://crlspathfinders-backend.vercel.app",
-    "https://crlspathfinders-backend.vercel.app/"
+    "https://crlspathfinders-backend.vercel.app/",
+    "https://crlspathfinders-backend.vercel.app/cache/Mentors"
 ]
 
 app.add_middleware(
@@ -100,3 +102,19 @@ async def read_sub_collection(collection: str, id: str, subcollection: str):
 @app.get("/delete/{collection}/{id}")
 async def delete_info(collection: str, id: str):
     return remove_id(collection, id)
+
+class SendMassEmail(BaseModel):
+    collection: str
+    subject: str
+    body: str
+
+@app.post("/emailall/")
+def email_all(email: SendMassEmail):
+    sendees = get_collection_python(email.collection)
+    emails = []
+    for s in sendees: emails.append(s["email"])
+    try:
+        send_mail(emails, email.subject, email.body)
+        return {"status": 0}
+    except Exception as e:
+        return {"status": -1, "error_message": e}
