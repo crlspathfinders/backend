@@ -1,13 +1,12 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Form, FastAPI, File, UploadFile, HTTPException
 from pydantic import BaseModel
-from typing import List
-from models.clubmodel import make_club, change_club, update_status, remove_club, verify_club_model, upload_club_image, set_club_image_doc
+from typing import List, Optional
+from models.clubmodel import make_club, change_club, update_status, remove_club, verify_club_model, upload_club_image, delete_club_image, set_club_image_doc
 from models.model import get_collection_python, get_el_id, get_doc
 from models.usermodel import join_leave_club
 from sendmail import send_mail
 from dotenv import load_dotenv
 import os
-from fastapi import FastAPI, File, UploadFile, HTTPException
 
 load_dotenv()
 
@@ -105,7 +104,8 @@ def delete_club(club_id: str):
                 if club_id in u["joined_clubs"]:
                     print("59 - Found!")
                     join_leave_club("leave", u["email"], club_id)
-                else: print("61 - Not found")
+                else: 
+                    print("61 - Not found")
         return {"status": "Successfully deleted club"}
     except Exception as e:
         return {"status": f"Failed to delete club: {e}"}
@@ -124,9 +124,15 @@ def verify_club(verify: VerifyClub):
         return {"status": "Failed", "error": e}
 
 @router.post("/uploadclubimage/")
-async def upload_image(file: UploadFile = File(...)):
+async def upload_image(file: UploadFile = File(...), old_file_name: Optional[str] = Form(None)):
     print(file)
     try:
+        # Validate file type
+        if file.content_type not in ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]:
+            raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG, JPG, PNG, WEBP, and GIF are allowed.")
+        if old_file_name:
+            delete_club_image(old_file_name)
+        
         img_url = upload_club_image(file)
         print(f"successfully uploaded club img: {img_url}")
         return {"status": img_url}
@@ -137,12 +143,13 @@ async def upload_image(file: UploadFile = File(...)):
 class SetClubImg(BaseModel):
     img_url: str
     club_id: str
+    old_id: str
 
 @router.post("/setclubimg/")
 async def set_club_img(upload: SetClubImg):
     if upload.img_url != "Failed":
-        set_club_image_doc(upload.club_id, upload.img_url)
+        set_club_image_doc(upload.club_id, upload.img_url, upload.old_id)
         return {"status": "Successfully updated club img doc"}
     else:
-        print(f"Failed to update club img doc.")
-        return {"status": f"Failed to update club img doc."}
+        print("Failed to update club img doc.")
+        return {"status": "Failed to update club img doc."}
