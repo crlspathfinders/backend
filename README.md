@@ -1,4 +1,4 @@
-| Error Code | Error Meaning | First File Used In | First Function Used In | 
+| Error Code | Error Meaning | File of Origin | Function of Origin | 
 | :---:         |     :---:      |          :---: | :---: |
 | 0 | Successful | N/A | N/A |
 | -1 | Any error "e" | N/A | N/A |
