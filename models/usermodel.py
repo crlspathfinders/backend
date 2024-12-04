@@ -1,4 +1,4 @@
-from .model import db, get_el_id, get_doc
+from .model import db, get_el_id, get_doc, get_collection_python
 from fastapi import HTTPException, Header, Depends
 from firebase_admin import auth
 
@@ -12,7 +12,10 @@ def make_user(email, is_leader, role, leading, joined_clubs):
                 "role": role,
                 "leading": leading,
                 "joined_clubs": joined_clubs,
-                "is_mentor": False
+                "is_mentor": False,
+                "is_mentee": False,
+                "mentee_logs": [],
+                "grade": ""
                 # Need to add img_url
             }
         )
@@ -182,3 +185,10 @@ def update_mentee_catalog(catalog_id, mentee_email, mentor_email, hours, mentee_
             "mentee_logs": mentee_logs
         }
     )
+
+def get_mentees():
+    all_users = get_collection_python("Users")
+    mentees = []
+    for u in all_users:
+        if u["is_mentee"]: mentees.append(u)
+    return mentees

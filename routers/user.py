@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from models.usermodel import make_user, change_user, verify_token, get_current_user, get_user_from_email, join_leave_club, change_user_role, delete_user, change_is_leader, change_is_mentor, change_mentor_eligible
+from models.usermodel import make_user, change_user, verify_token, get_current_user, get_user_from_email, join_leave_club, change_user_role, delete_user, change_is_leader, change_is_mentor, change_mentor_eligible, get_mentees
 from typing import Annotated, List
-from models.model import get_el_id, get_doc
+from models.model import get_el_id, get_doc, get_collection_python
 from models.clubmodel import get_members, manage_members, get_secret_pass
 
 router = APIRouter(
@@ -156,3 +156,46 @@ def toggle_leader_mentor(toggle: ToggleLeaderMentor):
             return {"status": f"Failed to toggle mentor eligible: {e}"}
     print(f"Wrong / not enough parameters in toggle leader mentor ok.")
     return {"status": "Incorrect parameters"}
+
+@router.get("/getmentees")
+def read_mentees():
+    pairings = []
+    mentees = get_mentees()
+    mentors = get_collection_python("Mentors")
+
+    for m in mentors:
+        curr_mentor = m
+        curr_mentor_catalog = curr_mentor["hours_worked_catalog"]
+        for c in curr_mentor_catalog:
+            curr_catalog = c
+            if curr_catalog["status"] == 0:
+                catalog_id = c["id"]
+                for ment in mentees:
+                    curr_mentee = ment
+                    mentee_logs = curr_mentee["mentee_logs"]
+                    entry = None
+                    for l in mentee_logs:
+                        if catalog_id == l["id"]: 
+                            entry = {
+                                "mentee": curr_mentee["email"],
+                                "mentor": curr_mentor["email"],
+                                "mentee_description": l["description"],
+                                "mentor_description": curr_catalog["description"],
+                                "hours": curr_catalog["hours"],
+                                "date_confirmed": l["date_confirmed"],
+                                "date_met": l["date_met"]
+                            }
+                            pairings.append(entry)
+            elif curr_catalog["status"] == -1:
+                entry = {
+                    "mentee": curr_catalog["mentee"],
+                    "mentor": curr_mentor["email"],
+                    "mentee_description": "N/A",
+                    "mentor_description": curr_catalog["description"],
+                    "hours": curr_catalog["hours"],
+                    "date_confirmed": "N/A",
+                    "date_met": curr_catalog["date"]
+                }
+                pairings.append(entry)
+
+    return pairings
