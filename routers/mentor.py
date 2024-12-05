@@ -1,10 +1,9 @@
 
-from fastapi import APIRouter, File, UploadFile, Form, HTTPException
+from fastapi import APIRouter, File, UploadFile, Form, HTTPException, FastAPI
 from pydantic import BaseModel
 from typing import List, Optional
 from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc, show_or_hide_mentor, update_mentor_hours, update_hours_worked_catalog, confirm_mentor_mentee_logging, delete_mentor_image, get_mentor_description
 from models.usermodel import update_mentee_catalog
-from fastapi import FastAPI, File, UploadFile, HTTPException
 from sendmail import send_mail
 import uuid, os, datetime
 from dotenv import load_dotenv
@@ -88,8 +87,8 @@ async def set_club_img(upload: SetClubImg):
         set_mentor_image_doc(upload.mentor_email, upload.img_url)
         return {"status": "Successfully updated mentor img doc"}
     else:
-        print(f"Failed to update mentor img doc.")
-        return {"status": f"Failed to update mentor img doc."}
+        print("Failed to update mentor img doc.")
+        return {"status": "Failed to update mentor img doc."}
 
 class MentorPitch(BaseModel):
     mentor_email: str
@@ -140,7 +139,7 @@ Hours: {log.log_hours}
         
         # Send email to mentor:
         receiver = log.mentor_email
-        subject = f"Confirmation of Mentor-Mentee Logging Form"
+        subject = "Confirmation of Mentor-Mentee Logging Form"
         body = f'''Hello,
 
 You have successfully logged your hours. The CRLS PathFinders team has recieved your hours, and a confirmation email has been sent to your mentee, {log.mentee_email}. Once they have confirmed that the hours are correct, your hours will be logged and you can receieve community service hours for your work.

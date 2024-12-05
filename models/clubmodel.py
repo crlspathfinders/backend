@@ -1,5 +1,6 @@
 from .model import db, get_el_id, get_doc, storage
 from .usermodel import change_user_role, join_leave_club, change_is_leader
+from .mentormodel import extract_relative_path
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from uuid import uuid4
 from io import BytesIO
@@ -39,7 +40,7 @@ def make_club(advisor_email, club_days, club_description, club_name, president_e
             print(f"pres joined {club_id}")
             members = get_members(club_id)
             members.append(president_email)
-            print(f"added pres to club members")
+            print("added pres to club members")
             change_is_leader(president_email, True)
             print(f"changed {president_email} to is leader")
             for v in vice_presidents_emails:
@@ -54,7 +55,7 @@ def make_club(advisor_email, club_days, club_description, club_name, president_e
                     join_leave_club("join", v, club_id)
                     print(f"pres joined {club_id}")
                     members.append(v)
-                    print(f"added vp to club members")
+                    print("added vp to club members")
             manage_members(secret_password, members)
         except Exception as e:
             print(f"Failed to change pres / vp role: {e}")
@@ -158,13 +159,27 @@ def upload_club_image(file: UploadFile = File(...)):
         print(f"Failed to upload img: {e}")
         return "Failed"
     
-def set_club_image_doc(club_id, img_url):
+def delete_club_image(file_name):
+    print(f"file_name: {file_name}")
+    to_delete = "https://storage.googleapis.com/crlspathfinders-82886.appspot.com/"
+    new_new_file_name = file_name[len(to_delete):]
+    # if file_path_or_url.startswith("http"):
+    #     file_path_or_url = extract_relative_path(file_path_or_url)
+    try:
+        blob = storage.bucket().blob(new_new_file_name)
+        blob.delete()
+        print(f"Successfully deleted image: {file_name}")
+    except Exception as e:
+        print(f"Failed to delete image: {e}")
+        
+def set_club_image_doc(club_id, img_url, old_id):
     try:
         db.collection("Clubs").document(club_id).update(
             {
                 "club_img": img_url
             }
         )
+        delete_club_image(old_id)
         return {"status": "Successfully updated club img doc"}
     except Exception as e:
         print(f"Failed to update club img doc: {e}")
