@@ -12,6 +12,8 @@ load_dotenv()
 def send_mail(email_receiver, subject, body):
     email_sender = os.environ.get("EMAIL_SENDER")
     email_password = os.environ.get("EMAIL_PASSWORD")
+    if isinstance(email_receiver, list):
+        email_receiver = ', '.join(email_receiver)
     em = EmailMessage()
     em['From'] = email_sender
     em['To'] = email_receiver
@@ -24,7 +26,7 @@ def send_mail(email_receiver, subject, body):
     # Log in and send the email
     with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
         smtp.login(email_sender, email_password)
-        smtp.sendmail(email_sender, email_receiver, em.as_string())
+        smtp.sendmail(email_sender, email_receiver.split(', '), em.as_string())
 
 # Email sending with embedded HTML:
 def send_alt_mail(email_sender, email_password, email_receiver, subject, text, html):
