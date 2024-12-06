@@ -1,6 +1,7 @@
 from .model import db, get_el_id, get_doc, get_collection_python
 from fastapi import HTTPException, Header, Depends
 from firebase_admin import auth
+from sendmail import send_mail
 
 def make_user(email, is_leader, role, leading, joined_clubs):
     collection = "Users"
@@ -20,6 +21,12 @@ def make_user(email, is_leader, role, leading, joined_clubs):
             }
         )
         print(result)
+        # Send email when new user signs up
+        receiver = "crlspathfinders25@gmail.com"
+        subject = "New user login"
+        body = f'''{email} just made an account.
+'''
+        send_mail(receiver, subject, body)
         return {"status": "Success"}
     except Exception as e:
         return {"status": f"Failed: {str(e)}"}
