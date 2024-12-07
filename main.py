@@ -12,6 +12,10 @@ from routers import user, club, mentor, peermentor
 from requests_cache import CachedSession
 from dotenv import load_dotenv
 from sendmail import send_mail
+from fastapi_cache.decorator import cache
+from fastapi_cache.backends.redis import RedisBackend
+from fastapi_cache import FastAPICache
+from redis import Redis
 
 load_dotenv()
 curr_url = os.environ.get("CURR_URL")
@@ -89,8 +93,26 @@ async def read_document(collection: str, id: str):
     return get_collection_id(collection, id)
 
 # Read a collection:
+# @app.get("/read/{collection}")
+# async def read_collection(collection: str):
+#     return get_collection(collection)
+
+# Simulate the get_collection function
+# def get_collection(collection: str):
+#     # Simulate a slow operation or a database call
+#     return {"collection": collection, "data": f"Data from {collection}"}
+
+# Cache initialization with Redis
+@app.on_event("startup")
+async def startup_event():
+    redis = Redis(host="localhost", port=6379, decode_responses=True)
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+
+# Cached endpoint
 @app.get("/read/{collection}")
+@cache(expire=60)  # Cache expires in 60 seconds
 async def read_collection(collection: str):
+    print("caching")
     return get_collection(collection)
 
 # Read a sub-collection

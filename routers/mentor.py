@@ -61,7 +61,7 @@ def delete_img(old_url: str):
 # Something like that^
 
 @router.post("/uploadmentorimage/")
-async def upload_image(file: UploadFile = File(...), old_file_name: Optional[str] = Form(None)): 
+async def upload_image(file: UploadFile = File(...), old_file_name: Optional[str] = Form(None)):
     print(file)
     try:
         # Validate file type
