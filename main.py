@@ -93,27 +93,22 @@ async def read_document(collection: str, id: str):
     return get_collection_id(collection, id)
 
 # Read a collection:
-# @app.get("/read/{collection}")
-# async def read_collection(collection: str):
-#     return get_collection(collection)
-
-# Simulate the get_collection function
-# def get_collection(collection: str):
-#     # Simulate a slow operation or a database call
-#     return {"collection": collection, "data": f"Data from {collection}"}
+@app.get("/read/{collection}")
+async def read_collection(collection: str):
+    return get_collection(collection)
 
 # Cache initialization with Redis
-@app.on_event("startup")
-async def startup_event():
-    redis = Redis(host="localhost", port=6379, decode_responses=True)
-    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+# @app.on_event("startup")
+# async def startup_event():
+#     redis = Redis(host="localhost", port=6379, decode_responses=True)
+#     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 
 # Cached endpoint
-@app.get("/read/{collection}")
-@cache(expire=60)  # Cache expires in 60 seconds
-async def read_collection(collection: str):
-    print("caching")
-    return get_collection(collection)
+# @app.get("/read/{collection}")
+# @cache(expire=60) 
+# async def read_collection(collection: str):
+#     print("caching")
+#     return get_collection(collection)
 
 # Read a sub-collection
 @app.get("/read/{collection}/{id}/{subcollection}")
