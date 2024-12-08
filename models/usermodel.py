@@ -6,6 +6,12 @@ from sendmail import send_mail
 def make_user(email, is_leader, role, leading, joined_clubs):
     collection = "Users"
     try:
+        curr_year = email[:2]
+        curr_grade = "Teacher"
+        if curr_year == "25": curr_grade = "Senior"
+        elif curr_year == "26": curr_grade = "Junior"
+        elif curr_year == "27": curr_grade = "Sophomore"
+        elif curr_year == "28": curr_grade = "Freshman"
         result = db.collection(collection).add(
             {
                 "email": email,
@@ -16,7 +22,7 @@ def make_user(email, is_leader, role, leading, joined_clubs):
                 "is_mentor": False,
                 "is_mentee": False,
                 "mentee_logs": [],
-                "grade": ""
+                "grade": curr_grade
                 # Need to add img_url
             }
         )
