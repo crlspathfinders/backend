@@ -62,9 +62,15 @@ app.include_router(peermentor.router)
 
 # Caching:
 
+# cached_mentors = CachedSession(
+#     cache_name="cache/Mentors",
+#     expire_after=10 # 10 s
+# )
+
 cached_mentors = CachedSession(
-    cache_name="cache/Mentors",
-    expire_after=10 # 10 s
+    backend='sqlite',
+    cache_name="cache.sqlite",  # SQLite database file
+    expire_after=10
 )
 
 @app.get("/cache/{collection}")
