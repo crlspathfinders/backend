@@ -38,7 +38,8 @@ origins = [
     "crlspathfinders.com/",
     "https://crlspathfinders-backend.vercel.app",
     "https://crlspathfinders-backend.vercel.app/",
-    "https://crlspathfinders-backend.vercel.app/cache/Mentors"
+    "https://crlspathfinders-backend.vercel.app/cache/Mentors",
+    "https://crlspathfinders-frontend-4rnkcxsw4-rehaan12345s-projects.vercel.app/"
 ]
 
 app.add_middleware(
