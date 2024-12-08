@@ -75,7 +75,7 @@ cached_mentors = CachedSession(
 
 @app.get("/cache/{collection}")
 def cache_mentors(collection: str):
-    mentors = cached_mentors.get(f"{curr_url}/read/{collection}")
+    mentors = cached_mentors.get(f"{curr_url}read/{collection}")
     return mentors.json()
 
 @app.get("/")
