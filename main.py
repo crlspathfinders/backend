@@ -97,7 +97,6 @@ redis = Redis(url="https://welcomed-kiwi-27133.upstash.io", token="AWn9AAIjcDExY
 # Read a collection:
 @app.get("/read/{collection}")
 async def read_collection(collection: str):
-    redis.set("test", "hello rehaan")
     docs = redis.hgetall(collection)
 
     results = []
@@ -115,7 +114,11 @@ async def read_collection(collection: str):
             data = value_str
 
         # Append the transformed dictionary to the results list
+        data["id"] = key_str
         results.append(data)
+
+    # Sort the data list alphabetically by id
+    results.sort(key=lambda x: x["id"])
 
     # Convert results to JSON string
     json_results = json.dumps(results)
