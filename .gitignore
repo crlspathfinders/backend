@@ -6,3 +6,4 @@ routers/testenv.py
 models/testenv.py
 routers/routers_venv
 testenv.py
+cache/
