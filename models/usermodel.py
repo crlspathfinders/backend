@@ -70,7 +70,12 @@ def get_current_user(authorization: str = Header(...)):
         return decoded_token
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-    
+
+# Redis testing:
+from upstash_redis import Redis
+
+redis = Redis(url="https://welcomed-kiwi-27133.upstash.io", token="AWn9AAIjcDExYTU0MzNlMmExOTg0ZTk0OGM0YmM3YThiNDllMDA0YnAxMA")
+
 def get_user_from_email(email):
     collection = "Users"
     try:
