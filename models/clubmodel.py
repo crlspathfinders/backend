@@ -11,7 +11,7 @@ def get_secret_pass(club_id):
 def make_club(advisor_email, club_days, club_description, club_name, president_email, room_number, google_classroom_link, secret_password, start_time, status, vice_presidents_emails):
     # Need to pass in the id, etc for which collection to actually change.
     collection = "Clubs"
-    standard_img = "https://firebasestorage.googleapis.com/v0/b/crlspathfinders-82886.appspot.com/o/club-images%2Felementor-placeholder-image.webp?alt=media&token=d841393a-df8c-4ea6-9622-58b0e7ae89cd"
+    standard_img = "https://firebasestorage.googleapis.com/v0/b/crlspathfinders-82886.appspot.com/o/club-images%2Felementor-placeholder-image.webp?alt=media&token=ca920f5c-bcfa-4739-b6bc-12fd70b00c9c"
     try:
         db.collection(collection).add(
             {
