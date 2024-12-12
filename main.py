@@ -105,34 +105,34 @@ redis = Redis(url="https://welcomed-kiwi-27133.upstash.io", token="AWn9AAIjcDExY
 # Read a collection:
 @app.get("/read/{collection}")
 async def read_collection(collection: str):
-    docs = redis.hgetall(collection)
+    # docs = redis.hgetall(collection)
 
-    results = []
-    for key, value in docs.items():
-        # Decode the key and value if they are bytes
-        key_str = key.decode('utf-8') if isinstance(key, bytes) else key
-        value_str = value.decode('utf-8') if isinstance(value, bytes) else value
+    # results = []
+    # for key, value in docs.items():
+    #     # Decode the key and value if they are bytes
+    #     key_str = key.decode('utf-8') if isinstance(key, bytes) else key
+    #     value_str = value.decode('utf-8') if isinstance(value, bytes) else value
         
-        # If value_str is a valid JSON string, load it into a Python dictionary
-        try:
-            # Try to parse the value as JSON
-            data = json.loads(value_str)
-        except json.JSONDecodeError:
-            # If not valid JSON, just keep it as a string
-            data = value_str
+    #     # If value_str is a valid JSON string, load it into a Python dictionary
+    #     try:
+    #         # Try to parse the value as JSON
+    #         data = json.loads(value_str)
+    #     except json.JSONDecodeError:
+    #         # If not valid JSON, just keep it as a string
+    #         data = value_str
 
-        # Append the transformed dictionary to the results list
-        data["id"] = key_str
-        results.append(data)
+    #     # Append the transformed dictionary to the results list
+    #     data["id"] = key_str
+    #     results.append(data)
 
-    # Sort the data list alphabetically by id
-    results.sort(key=lambda x: x["id"])
+    # # Sort the data list alphabetically by id
+    # results.sort(key=lambda x: x["id"])
 
-    # Convert results to JSON string
-    json_results = json.dumps(results)
+    # # Convert results to JSON string
+    # json_results = json.dumps(results)
 
-    return json_results
-    # return get_collection(collection)
+    # return json_results
+    return get_collection(collection)
 
 # Read a sub-collection
 @app.get("/read/{collection}/{id}/{subcollection}")
