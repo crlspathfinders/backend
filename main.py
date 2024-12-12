@@ -12,9 +12,15 @@ from routers import user, club, mentor, peermentor
 from requests_cache import CachedSession
 from dotenv import load_dotenv
 from sendmail import send_mail
+from upstash_redis import Redis
+from models.redismodel import get_redis_collection, add_redis_collection, get_redis_collection_id, add_redis_collection_id, delete_redis_data
 
 load_dotenv()
 curr_url = os.environ.get("CURR_URL")
+
+# Redis testing:
+
+redis = Redis(url=os.environ.get("REDIS_URL"), token=os.environ.get("REDIS_TOKEN"))
 
 # from google.cloud import storage
 
@@ -88,44 +94,38 @@ def test():
 
 @app.get("/read/{collection}/{id}")
 async def read_document(collection: str, id: str):
-    return get_collection_id(collection, id)
-
-# Redis testing:
-from upstash_redis import Redis
-
-redis = Redis(url="https://welcomed-kiwi-27133.upstash.io", token="AWn9AAIjcDExYTU0MzNlMmExOTg0ZTk0OGM0YmM3YThiNDllMDA0YnAxMA")
+    coll_id = get_redis_collection_id(collection, id)
+    status = coll_id["status"]
+    if status == 0: # Found
+        return {"status": 0, "collid": coll_id["target_val"]}
+    if status == -4: # No collection id found
+        coll_id = get_collection_id(collection, id)
+        add_id = add_redis_collection_id(collection, coll_id)
+        if add_id["status"] == 0:
+            return {"status": 0, "collid": coll_id}
+        return {"status": -1, "error_message": add_id["error_message"]}
+    if status == -1:
+        return {"status": -1, "error_message": coll_id["error_message"]}
 
 # Read a collection:
 @app.get("/read/{collection}")
 async def read_collection(collection: str):
-    docs = redis.hgetall(collection)
+    
+    redis_collection = get_redis_collection(collection)
+    status = redis_collection["status"]
 
-    results = []
-    for key, value in docs.items():
-        # Decode the key and value if they are bytes
-        key_str = key.decode('utf-8') if isinstance(key, bytes) else key
-        value_str = value.decode('utf-8') if isinstance(value, bytes) else value
-        
-        # If value_str is a valid JSON string, load it into a Python dictionary
-        try:
-            # Try to parse the value as JSON
-            data = json.loads(value_str)
-        except json.JSONDecodeError:
-            # If not valid JSON, just keep it as a string
-            data = value_str
+    if status == 0: # Found
+        return {"status": 0, "collection": redis_collection["results"]}
 
-        # Append the transformed dictionary to the results list
-        data["id"] = key_str
-        results.append(data)
-
-    # Sort the data list alphabetically by id
-    results.sort(key=lambda x: x["id"])
-
-    # Convert results to JSON string
-    json_results = json.dumps(results)
-
-    return json_results
-    # return get_collection(collection)
+    if status == -3: # No cache (collection not in redis)
+        # If not in cache, then add it to cache
+        add_collection = add_redis_collection(collection)
+        if add_collection["status"] == 0:
+            return {"status": 0, "collection": add_collection["collection"]}
+        return {"status": -1, "error_message": add_collection["error_message"]}
+    
+    if status == -1:
+        return {"status": -1, "error_message": redis_collection["error_message"]}
 
 # Read a sub-collection
 @app.get("/read/{collection}/{id}/{subcollection}")
@@ -135,6 +135,8 @@ async def read_sub_collection(collection: str, id: str, subcollection: str):
 # Delete (delete the document itself, not the info, so only need the document parameter):
 @app.get("/delete/{collection}/{id}")
 async def delete_info(collection: str, id: str):
+    del_redis = delete_redis_data(collection, id)
+    print(del_redis)
     return remove_id(collection, id)
 
 class SendMassEmail(BaseModel):
