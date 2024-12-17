@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from sendmail import send_mail
 from upstash_redis import Redis
 from models.redismodel import get_redis_collection, add_redis_collection, get_redis_collection_id, add_redis_collection_id, delete_redis_data
+from fastapi.responses import JSONResponse
 
 load_dotenv()
 curr_url = os.environ.get("CURR_URL")
@@ -126,6 +127,36 @@ async def read_collection(collection: str):
     
     if status == -1:
         return {"status": -1, "error_message": redis_collection["error_message"]}
+
+# @app.get("/read/{collection}")
+# async def read_collection(collection: str):
+#     # Attempt to retrieve the collection from Redis
+#     redis_collection = get_redis_collection(collection)
+#     status = redis_collection["status"]
+
+#     if status == 0:  # Found in cache
+#         response = {"status": 0, "collection": redis_collection["results"]}
+#         # Add Cache-Control headers to allow caching
+#         headers = {"Cache-Control": "public, max-age=3600"}  # Cache for 1 hour
+#         print(headers)
+#         return JSONResponse(content=response, headers=headers)
+
+#     if status == -3:  # Not in cache (Redis miss)
+#         # Attempt to add the collection to Redis
+#         add_collection = add_redis_collection(collection)
+#         if add_collection["status"] == 0:
+#             response = {"status": 0, "collection": add_collection["collection"]}
+#             headers = {"Cache-Control": "public, max-age=3600"}  # Cache for 1 hour
+#             return JSONResponse(content=response, headers=headers)
+#         # Return error if adding to Redis fails
+#         response = {"status": -1, "error_message": add_collection["error_message"]}
+#         headers = {"Cache-Control": "no-store"}  # Avoid caching errors
+#         return JSONResponse(content=response, headers=headers)
+
+#     if status == -1:  # General error from Redis
+#         response = {"status": -1, "error_message": redis_collection["error_message"]}
+#         headers = {"Cache-Control": "no-store"}  # Avoid caching errors
+#         return JSONResponse(content=response, headers=headers)
 
 # Read a sub-collection
 @app.get("/read/{collection}/{id}/{subcollection}")
