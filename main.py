@@ -148,6 +148,7 @@ class SendMassEmail(BaseModel):
     collection: str
     subject: str
     body: str
+    recipients: List[str]
 
 @app.post("/emailall/")
 def email_all(email: SendMassEmail):
