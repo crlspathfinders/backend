@@ -1,5 +1,6 @@
-from .model import db, get_el_id, get_doc, storage
+from .model import db, get_el_id, get_doc, storage, get_collection_id
 from .usermodel import change_user_role, change_is_mentor
+from .redismodel import add_redis_collection_id
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from uuid import uuid4
 from io import BytesIO
@@ -141,6 +142,9 @@ def show_or_hide_mentor(mentor_email):
                 "show": toggle
             }
         )
+        mentor_id = get_el_id("Mentors", mentor.email)
+        coll_id = get_collection_id("Mentors", mentor_id)
+        add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
     except Exception as e:
         print(f"Failed to show or hide mentor: {e}")
         return {"status": f"Failed to show or hide mentor: {e}"}

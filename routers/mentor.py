@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from typing import List, Optional
 from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc, show_or_hide_mentor, update_mentor_hours, update_hours_worked_catalog, confirm_mentor_mentee_logging, delete_mentor_image, get_mentor_description
 from models.usermodel import update_mentee_catalog
+from models.model import get_el_id, get_collection_id
+from models.redismodel import add_redis_collection_id, delete_redis_id
 from sendmail import send_mail
 import uuid, os, datetime
 from dotenv import load_dotenv
@@ -31,8 +33,13 @@ async def create_mentor(mentor: Mentor):
     try:
         print("create mentor start")
         make_mentor(mentor.firstname, mentor.lastname, mentor.bio, mentor.email, mentor.races, mentor.religions, mentor.gender, mentor.languages, mentor.academics)
-        print("create mentor end")
-        return {"status": "Successfully created mentor"}
+        mentor_id = get_el_id("Mentors", mentor.email)
+        coll_id = get_collection_id("Mentors", mentor_id)
+        add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
+        print(add_id)
+        if add_id["status"] == 0:
+            return {"status": "Successfully edited mentor"}
+        return {"status": f"Failed to update mentor redis: {add_id["error_message"]}"}
     except Exception as e:
         return {"status": f"Failed to create mentor: {e}"}
 
@@ -40,15 +47,23 @@ async def create_mentor(mentor: Mentor):
 async def update_mentor(mentor: Mentor):
     try:
         change_mentor(mentor.firstname, mentor.lastname, mentor.bio, mentor.email, mentor.races, mentor.religions, mentor.gender, mentor.languages, mentor.academics)
-        return {"status": "Successfully edited mentor"}
+        mentor_id = get_el_id("Mentors", mentor.email)
+        coll_id = get_collection_id("Mentors", mentor_id)
+        add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
+        if add_id["status"] == 0:
+            return {"status": "Successfully edited mentor"}
     except Exception as e:
         return {"status": f"Failed to edit mentor: {e}"}
     
 @router.get("/deletementor/{email}")
 async def delete_mentor(email: str):
     try:
-        remove_mentor(email)
-        return {"Status": "Successfully deleted mentor"}
+        mentor_id = get_el_id("Mentors", email)
+        del_id = delete_redis_id("Mentors", mentor_id)
+        if del_id["status"] == 0:
+            remove_mentor(email)
+            return {"Status": "Successfully deleted mentor"}
+        return {"status": f"Failed to delete pml redis: {del_id["error_message"]}"}
     except Exception as e:
         return {"status": f"Failed to delete mentor: {e}"}
     
@@ -85,6 +100,9 @@ class SetClubImg(BaseModel):
 async def set_club_img(upload: SetClubImg):
     if upload.img_url != "Failed":
         set_mentor_image_doc(upload.mentor_email, upload.img_url)
+        mentor_id = get_el_id("Mentors", upload.mentor_email)
+        coll_id = get_collection_id("Mentors", mentor_id)
+        add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
         return {"status": "Successfully updated mentor img doc"}
     else:
         print("Failed to update mentor img doc.")
@@ -171,6 +189,9 @@ Abel Asefaw '25
             date = datetime.date.today()
             status = -1 # -1 means mentee not confirmed, 0 means mentee confirmed.
             update_hours_worked_catalog(catalog_id, log.mentor_email, log.mentee_email, log.log_description, log.log_hours, date, status)
+            mentor_id = get_el_id("Mentors", log.mentor_email)
+            coll_id = get_collection_id("Mentors", mentor_id)
+            add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
             print("Successfully updated mentor hours")
         except Exception as e:
             print(f"Failed to update mentor catalog: {e}")
@@ -228,12 +249,20 @@ def mentee_confirm_hours(mentee_log: MenteeConfirmHours):
     if confirm == 0: # 0 = yes, -1 = no
         log_status = confirm_mentor_mentee_logging(catalog_id, mentee_email, mentor_email, mentee_hours)
         if log_status["status"] == 0:
+            mentor_id = get_el_id("Mentors", mentee_log.mentor_email)
+            coll_id = get_collection_id("Mentors", mentor_id)
+            add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
+            print(add_id)
             # do the mentee logging
             print("mentor log found")
             mentor_log = log_status["mentor_log"]
             date_met = mentor_log["date"]
             date_confirmed = datetime.date.today()
             update_mentee_catalog(catalog_id, mentee_email, mentor_email, mentee_hours, mentee_description, str(date_confirmed), date_met)
+            mentor_id = get_el_id("Mentors", mentee_log.mentor_email)
+            coll_id = get_collection_id("Mentors", mentor_id)
+            add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
+            print(add_id)
         elif log_status["status"] == -2: # Mismatching hours:
             print("hours do not match confirmed")
             return {"status": -2, "error_message": "Hours do not match." }
@@ -272,6 +301,11 @@ Abel Asefaw '25
         print(n_subject)
         print(n_body)
         send_mail(n_receiver, n_subject, n_body)
+
+        mentor_id = get_el_id("Mentors", mentee_log.mentor_email)
+        coll_id = get_collection_id("Mentors", mentor_id)
+        add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
+        print(add_id)
 
         return {"status": 0}
     return {"status": -1, "error_message": "confirm came back false (0)"}
