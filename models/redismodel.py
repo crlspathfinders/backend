@@ -79,7 +79,7 @@ def get_redis_collection(collection):
             return {"status": 0, "results": json_results}
 
         else: # If the cache is not updated
-            return {"status": -3, "error_message": "Cache is empty"}
+            return {"status": -3, "error_message": "Cache is empty"} 
         
     except Exception as e:
         print(f"Error getting collection: {e}")
