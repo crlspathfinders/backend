@@ -57,7 +57,7 @@ def make_new_user(user: User):
     try:
         make_user(user.email, user.is_leader, user.role, user.leading, user.joined_clubs)
         return {"status": "Successfully made user"}
-    except Exception as e:
+    except Exception as e: 
         return {"status": f"Failed to make user: {e}"}
 
 @router.get("/user-info")
