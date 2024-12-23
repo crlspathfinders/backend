@@ -2,7 +2,8 @@ from fastapi import APIRouter, Form, FastAPI, File, UploadFile, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from models.clubmodel import make_club, change_club, update_status, remove_club, verify_club_model, upload_club_image, delete_club_image, set_club_image_doc
-from models.model import get_collection_python, get_el_id, get_doc
+from models.model import get_collection_python, get_el_id, get_doc, get_collection, get_collection_id
+from models.redismodel import add_redis_collection_id, delete_redis_id
 from models.usermodel import join_leave_club
 from sendmail import send_mail
 from dotenv import load_dotenv
@@ -33,6 +34,11 @@ async def create_info(club: Club):
         # Client side makes sure that the president email and advisor emails are correct, etc.
         # Make club will make create it as Pending -> will wait for advisor verification to Approve it.
         make_club(club.advisor_email, club.club_days, club.club_description, club.club_name, club.president_email, club.room_number, club.google_classroom_link, club.secret_password, club.start_time, club.status, club.vice_president_emails)
+
+        club_id = get_el_id("Clubs", club.secret_password)
+        coll_id = get_collection_id("Clubs", club_id)
+        add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
+
         # Now have to send email to advisor with password:
         receiver = club.advisor_email
         subject = f"CRLS Pathfinders | {club.club_name} Confirmation Code"
@@ -76,7 +82,12 @@ Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
 async def update_club(club: Club):
     try:
         change_club(club.advisor_email, club.club_days, club.club_description, club.club_name, club.president_email, club.room_number, club.google_classroom_link, club.secret_password, club.start_time, club.status, club.vice_president_emails)
-        return {"status": "Successfully edited club"}
+        club_id = get_el_id("Clubs", club.secret_password)
+        coll_id = get_collection_id("Clubs", club_id)
+        add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
+        if add_id["status"] == 0:
+            return {"status": "Successfully edited club"}
+        return {"status": f"Failed to update club redis: {add_id["error_message"]}"}
     except Exception as e:
         return {"status": f"Failed to edit club: {e}"}
 
@@ -88,6 +99,9 @@ class ChangeStatus(BaseModel):
 def change_status(change_status: ChangeStatus):
     try:
         update_status(change_status.secret_password, change_status.status)
+        club_id = get_el_id("Clubs", change_status.secret_password)
+        coll_id = get_collection_id("Clubs", club_id)
+        add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
         return {"status": "Successfully changed status"}
     except Exception as e:
         return {"status": f"Failed to change status: {e}"}
@@ -95,18 +109,22 @@ def change_status(change_status: ChangeStatus):
 @router.get("/deleteclub/{club_id}")
 def delete_club(club_id: str):
     try:
-        remove_club(club_id)
-        # Now remove this club from all of the users who are members of this club:
-        users = get_collection_python("Users")
-        print(f"57 - {users}")
-        for u in users:
-            if len(u["joined_clubs"]) > 0:
-                if club_id in u["joined_clubs"]:
-                    print("59 - Found!")
-                    join_leave_club("leave", u["email"], club_id)
-                else: 
-                    print("61 - Not found")
-        return {"status": "Successfully deleted club"}
+        del_id = delete_redis_id("Clubs", club_id)
+        if del_id["status"] == 0:
+            remove_club(club_id)
+            # Now remove this club from all of the users who are members of this club:
+            # users = get_collection_python("Users")
+            # print(f"57 - {users}")
+            # for u in users:
+            #     if len(u["joined_clubs"]) > 0:
+            #         if club_id in u["joined_clubs"]:
+            #             print("59 - Found!")
+            #             join_leave_club("leave", u["email"], club_id)
+            #         else: 
+            #             print("61 - Not found")
+            return {"status": "Successfully deleted club"}
+        return {"status": f"Failed to delete club redis: {del_id["error_message"]}"}
+        
     except Exception as e:
         return {"status": f"Failed to delete club: {e}"}
     
@@ -149,6 +167,8 @@ class SetClubImg(BaseModel):
 async def set_club_img(upload: SetClubImg):
     if upload.img_url != "Failed":
         set_club_image_doc(upload.club_id, upload.img_url, upload.old_id)
+        coll_id = get_collection_id("Clubs", upload.club_id)
+        add_id = add_redis_collection_id("Clubs", coll_id, club_id=upload.club_id)
         return {"status": "Successfully updated club img doc"}
     else:
         print("Failed to update club img doc.")

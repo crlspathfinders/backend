@@ -7,6 +7,21 @@ load_dotenv()
 
 redis = Redis(url=os.environ.get("REDIS_URL"), token=os.environ.get("REDIS_TOKEN"))
 
+def get_redis_from_cache(collection): # Not done yet - continue % complete later (last step maybe).
+    try:
+        cached_data = redis.get(collection)
+        print("Found cache")
+        print(cached_data)
+    except Exception as e:
+        print(f"Failed to get cache: {e}")
+        response = get_redis_collection(collection)
+        print(response)
+        new_response = response["results"]
+        print(f"new response: {new_response}")
+        
+        # Store the data in Redis cache with a 10-minute expiration
+        redis.setex("Mentors", 600, new_response)
+
 def check_upstash_usage():
     """
     Fetch and check Upstash Redis usage limits.
@@ -91,9 +106,18 @@ def add_redis_collection(collection):
     except Exception as e:
         return {"status": -1, "error_message": f"Failed to add collection to redis: {e}"}
     
-def add_redis_collection_id(collection, data):
+def add_redis_collection_id(collection, data, club_id="", mentor_id="", pml_id="", user_id=""):
     try:
-        redis.hset(collection, data["id"], data)
+        if len(club_id) > 1: 
+            redis.hset(collection, club_id, data)
+        elif len(mentor_id) > 1:
+            redis.hset(collection, mentor_id, data)
+        elif len(pml_id) > 1:
+            redis.hset(collection, pml_id, data)  
+        elif len(user_id) > 1:
+            redis.hset(collection, user_id, data)      
+        else: 
+            redis.hset(collection, data["id"], data)
         return {"status": 0}
     except Exception as e:
         return {"status": -1, "error_message": f"Failed to add redis collection id: {e}"}
@@ -107,3 +131,11 @@ def delete_redis_data(collection, id):
             return {"status": -5, "error_message": "No redis field found to delete"}
     except Exception as e:
         return {"status": -1, "error_message": e}
+    
+def delete_redis_id(collection, delete_id):
+    try:
+        redis.hdel(collection, delete_id)
+        return {"status": 0}
+    except Exception as e:
+        print(e)
+        return {"status": -1, "error_message": f"Failed to delete redis collection id: {e}"}

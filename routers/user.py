@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from models.usermodel import make_user, change_user, verify_token, get_current_user, get_user_from_email, join_leave_club, change_user_role, delete_user, change_is_leader, change_is_mentor, change_mentor_eligible, get_mentees
 from typing import Annotated, List
-from models.model import get_el_id, get_doc, get_collection_python
+from models.model import get_el_id, get_doc, get_collection_python, get_collection_id
 from models.clubmodel import get_members, manage_members, get_secret_pass
+from models.redismodel import add_redis_collection_id, delete_redis_id
 
 router = APIRouter(
     tags=["user"]
@@ -18,11 +19,19 @@ class User(BaseModel):
     
 @router.post("/createuser/")
 async def create_user(user: User):
-    return make_user(user.email, user.is_leader, user.role, user.leading, user.joined_clubs)
+    use = make_user(user.email, user.is_leader, user.role, user.leading, user.joined_clubs)
+    user_id = get_el_id("Users", user.email)
+    coll_id = get_collection_id("Users", user_id)
+    add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+    return use
 
 @router.post("/updateuser/")
 async def update_user(user: User):
-    return change_user(user.email, user.is_leader, user.password, user.role)
+    chan = change_user(user.email, user.is_leader, user.role)
+    user_id = get_el_id("Users", user.email)
+    coll_id = get_collection_id("Users", user_id)
+    add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+    return chan
 
 class Token(BaseModel):
     token: str
@@ -56,6 +65,9 @@ def create_user_route(token: Token):
 def make_new_user(user: User):
     try:
         make_user(user.email, user.is_leader, user.role, user.leading, user.joined_clubs)
+        user_id = get_el_id("Users", user.email)
+        coll_id = get_collection_id("Users", user_id)
+        add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
         return {"status": "Successfully made user"}
     except Exception as e:
         return {"status": f"Failed to make user: {e}"}
@@ -89,6 +101,11 @@ def toggle_club(email: str, club_id: str):
             join_leave_club("leave", email, club_id)
             members.remove(email)
             manage_members(secret_password, members)
+            user_id = get_el_id("Users", email)
+            coll_id = get_collection_id("Users", user_id)
+            add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+            coll_id = get_collection_id("Clubs", club_id)
+            add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
             return {"status": "Successfully left club"}
         except Exception as e:
             return {"status": f"Failed to leave club: {e}"}
@@ -97,6 +114,11 @@ def toggle_club(email: str, club_id: str):
             join_leave_club("join", email, club_id)
             members.append(email)
             manage_members(secret_password, members)
+            user_id = get_el_id("Users", email)
+            coll_id = get_collection_id("Users", user_id)
+            add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+            coll_id = get_collection_id("Clubs", club_id)
+            add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
             return {"status": "Successfully joined club"}
         except Exception as e:
             return {"status": f"Failed to leave club: {e}"}
@@ -109,6 +131,9 @@ class ChangeRole(BaseModel):
 def change_role(change: ChangeRole):
     try:
         change_user_role(change.email, change.new_role)
+        user_id = get_el_id("Users", change.email)
+        coll_id = get_collection_id("Users", user_id)
+        add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
         return {"status": "Successfully changed user role"}
     except Exception as e:
         print(f"Failed to change role: {e}")
@@ -117,7 +142,10 @@ def change_role(change: ChangeRole):
 @router.get("/deleteuser/{email}")
 def remove_user(email: str):
     try:
-        delete_user(email)
+        user_id = get_el_id("Users", email)
+        del_id = delete_redis_id("Users", user_id)
+        if del_id["status"] == 0:
+            delete_user(email)
         return {"status": "Successfully deleted user"}
     except Exception as e:
         print(f"Failed to change role: {e}")
@@ -133,6 +161,9 @@ def toggle_leader_mentor(toggle: ToggleLeaderMentor):
     if toggle.leader_mentor == "Leader":
         try:
             change_is_leader(toggle.email, toggle.toggle)
+            user_id = get_el_id("Users", toggle.email)
+            coll_id = get_collection_id("Users", user_id)
+            add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
             print(f"Changed {toggle.email} to {toggle.toggle}")
             return {"status": "Successfully toggled leader"}
         except Exception as e:
@@ -141,6 +172,9 @@ def toggle_leader_mentor(toggle: ToggleLeaderMentor):
     if toggle.leader_mentor == "Mentor":
         try:
             change_is_mentor(toggle.email, toggle.toggle)
+            user_id = get_el_id("Users", toggle.email)
+            coll_id = get_collection_id("Users", user_id)
+            add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
             print(f"Changed {toggle.email} to {toggle.toggle}")
             return {"status": "Successfully toggled mentor"}
         except Exception as e:
@@ -149,6 +183,9 @@ def toggle_leader_mentor(toggle: ToggleLeaderMentor):
     if toggle.leader_mentor == "Mentor-Eligible":
         try:
             change_mentor_eligible(toggle.email, toggle.toggle)
+            user_id = get_el_id("Users", toggle.email)
+            coll_id = get_collection_id("Users", user_id)
+            add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
             print(f"Changed {toggle.email} to {toggle.toggle}")
             return {"status": "Successfully toggled mentor eligible"}
         except Exception as e:

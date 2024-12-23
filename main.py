@@ -111,8 +111,8 @@ async def read_document(collection: str, id: str):
 # Read a collection:
 @app.get("/read/{collection}")
 async def read_collection(collection: str):
-    
     redis_collection = get_redis_collection(collection)
+    # print(redis_collection)
     status = redis_collection["status"]
 
     if status == 0: # Found

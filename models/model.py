@@ -29,22 +29,22 @@ def get_el_id(collection, target):
     # target is club_name (Clubs) or email (Users & Mentors)
 
     # Redis testing:
-    if collection == "Users":
-        all_users = redis.hgetall("Users")
-        for key, value in all_users.items():
-            # Decode the key and value
-            key_str = key.decode('utf-8') if isinstance(key, bytes) else key
-            value_str = value.decode('utf-8') if isinstance(value, bytes) else value
+    # if collection == "Users":
+    #     all_users = redis.hgetall("Users")
+    #     for key, value in all_users.items():
+    #         # Decode the key and value
+    #         key_str = key.decode('utf-8') if isinstance(key, bytes) else key
+    #         value_str = value.decode('utf-8') if isinstance(value, bytes) else value
 
-            # Parse the value (user data)
-            try:
-                user_data = json.loads(value_str)
-            except json.JSONDecodeError:
-                continue  # Skip if there's an error parsing the JSON
+    #         # Parse the value (user data)
+    #         try:
+    #             user_data = json.loads(value_str)
+    #         except json.JSONDecodeError:
+    #             continue  # Skip if there's an error parsing the JSON
 
-            # Check if the email matches
-            if user_data.get("email") == target:
-                return key_str  # Return the user's ID (Redis key)
+    #         # Check if the email matches
+    #         if user_data.get("email") == target:
+    #             return key_str  # Return the user's ID (Redis key)
 
     if collection == "Clubs":
         collection = db.collection(collection)

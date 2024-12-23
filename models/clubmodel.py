@@ -1,6 +1,7 @@
-from .model import db, get_el_id, get_doc, storage
+from .model import db, get_el_id, get_doc, storage, get_collection_id
 from .usermodel import change_user_role, join_leave_club, change_is_leader
 from .mentormodel import extract_relative_path
+from .redismodel import add_redis_collection_id
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from uuid import uuid4
 from io import BytesIO
@@ -133,6 +134,9 @@ def verify_club_model(secret_password):
         club = whole_club["club_name"]
         if whole_club["status"] == "Pending":
             update_status(secret_password, "Approved")
+            club_id = get_el_id("Clubs", secret_password)
+            coll_id = get_collection_id("Clubs", club_id)
+            add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
             print(f"got club: {club}")
             return {"status": "Success", "club": club}
         elif whole_club["status"] == "Approved":
