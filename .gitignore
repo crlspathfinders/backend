@@ -7,4 +7,3 @@ models/testenv.py
 routers/routers_venv
 testenv.py
 cache/
-pathfinders.log
