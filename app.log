@@ -1,0 +1,171 @@
+2024-12-23 18:57:37,872 - INFO - Collection 'Clubs' found in Redis.
+2024-12-23 18:57:44,904 - INFO - Collection 'Mentors' found in Redis.
+2024-12-23 18:57:45,000 - INFO - Collection 'Users' found in Redis.
+2024-12-23 18:57:46,550 - INFO - Collection 'PeerMentorLinks' found in Redis.
+2024-12-23 18:57:46,589 - INFO - Collection 'Demographics' found in Redis.
+2024-12-23 18:57:53,771 - INFO - Collection 'Clubs' found in Redis.
+2024-12-23 18:58:16,111 - WARNING - Collection 'Mentorm' not found in Redis. Adding to cache.
+2024-12-23 18:58:16,587 - INFO - Collection 'Mentorm' successfully added to Redis.
+2024-12-23 18:58:36,351 - INFO - Collection 'Clubs' found in Redis.
+2024-12-23 18:58:44,090 - INFO - Collection 'Mentors' found in Redis.
+2024-12-23 18:58:44,151 - INFO - Collection 'Users' found in Redis.
+2024-12-23 22:15:21,325 - INFO - Collection 'Mentors' found in Redis.
+2024-12-23 22:17:28,104 - INFO - Collection 'Users' found in Redis.
+2024-12-23 22:28:14,354 - INFO - Collection 'Mentors' found in Redis.
+2024-12-23 22:28:14,484 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:06:25,387 - ERROR - AuthMetadataPluginCallback "<google.auth.transport.grpc.AuthMetadataPlugin object at 0x1105a9820>" raised exception!
+Traceback (most recent call last):
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 789, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 536, in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/urllib3/connection.py", line 507, in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py", line 1428, in getresponse
+    response.begin()
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py", line 331, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py", line 300, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+http.client.RemoteDisconnected: Remote end closed connection without response
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/requests/adapters.py", line 667, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 843, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/urllib3/util/retry.py", line 474, in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/urllib3/util/util.py", line 38, in reraise
+    raise value.with_traceback(tb)
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 789, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/urllib3/connectionpool.py", line 536, in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/urllib3/connection.py", line 507, in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py", line 1428, in getresponse
+    response.begin()
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py", line 331, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/client.py", line 300, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/google/auth/transport/requests.py", line 187, in __call__
+    response = self.session.request(
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/requests/adapters.py", line 682, in send
+    raise ConnectionError(err, request=request)
+requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/grpc/_plugin_wrapping.py", line 105, in __call__
+    self._metadata_plugin(
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/google/auth/transport/grpc.py", line 95, in __call__
+    callback(self._get_authorization_headers(context), None)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/google/auth/transport/grpc.py", line 81, in _get_authorization_headers
+    self._credentials.before_request(
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/google/auth/credentials.py", line 228, in before_request
+    self._blocking_refresh(request)
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/google/auth/credentials.py", line 191, in _blocking_refresh
+    self.refresh(request)
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/google/oauth2/service_account.py", line 446, in refresh
+    access_token, expiry, _ = _client.jwt_grant(
+                              ^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/google/oauth2/_client.py", line 298, in jwt_grant
+    response_data = _token_endpoint_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/google/oauth2/_client.py", line 258, in _token_endpoint_request
+    response_status_ok, response_data, retryable_error = _token_endpoint_request_no_throw(
+                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/google/oauth2/_client.py", line 191, in _token_endpoint_request_no_throw
+    response = request(
+               ^^^^^^^^
+  File "/Users/rehaananjariaagain1/Library/Mobile Documents/com~apple~CloudDocs/Desktop/crlspathfinders_newweb/backend/new_venv/lib/python3.12/site-packages/google/auth/transport/requests.py", line 193, in __call__
+    raise new_exc from caught_exc
+google.auth.exceptions.TransportError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+2024-12-24 11:06:31,497 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:06:31,579 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:06:33,567 - INFO - Collection 'Clubs' found in Redis.
+2024-12-24 11:06:34,520 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:06:34,556 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:07:11,265 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:07:11,307 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:07:12,212 - INFO - Collection 'Clubs' found in Redis.
+2024-12-24 11:07:13,282 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:07:13,330 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:07:14,601 - INFO - Collection 'PeerMentorLinks' found in Redis.
+2024-12-24 11:07:14,639 - INFO - Collection 'Demographics' found in Redis.
+2024-12-24 11:07:15,189 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:07:15,231 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:07:19,058 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:07:19,096 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:09:24,644 - INFO - Collection 'Clubs' found in Redis.
+2024-12-24 11:09:59,998 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:10:00,134 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:10:05,868 - INFO - Collection 'PeerMentorLinks' found in Redis.
+2024-12-24 11:10:05,915 - INFO - Collection 'Demographics' found in Redis.
+2024-12-24 11:10:06,964 - INFO - Collection 'Clubs' found in Redis.
+2024-12-24 11:10:19,238 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:10:19,281 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:10:22,325 - INFO - Collection 'PeerMentorLinks' found in Redis.
+2024-12-24 11:10:22,451 - INFO - Collection 'Demographics' found in Redis.
+2024-12-24 11:10:23,631 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:10:23,672 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:10:25,145 - INFO - Collection 'Clubs' found in Redis.
+2024-12-24 11:11:31,380 - INFO - Collection 'Clubs' found in Redis.
+2024-12-24 11:11:31,433 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:11:31,478 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:11:31,527 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:11:31,731 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:11:38,228 - INFO - Collection 'Clubs' found in Redis.
+2024-12-24 11:11:40,112 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:11:40,151 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:11:41,623 - INFO - Collection 'Clubs' found in Redis.
+2024-12-24 11:11:42,650 - INFO - Collection 'PeerMentorLinks' found in Redis.
+2024-12-24 11:11:42,687 - INFO - Collection 'Demographics' found in Redis.
+2024-12-24 11:11:43,473 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:11:43,510 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:11:44,385 - INFO - Collection 'Clubs' found in Redis.
+2024-12-24 11:11:47,693 - INFO - Collection 'Clubs' found in Redis.
+2024-12-24 11:12:08,680 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:12:08,749 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:12:09,914 - INFO - Collection 'PeerMentorLinks' found in Redis.
+2024-12-24 11:12:09,987 - INFO - Collection 'Demographics' found in Redis.
+2024-12-24 11:12:10,653 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:12:10,691 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:12:12,249 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:12:12,292 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:12:13,322 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:12:13,372 - INFO - Collection 'Users' found in Redis.
+2024-12-24 11:12:32,055 - INFO - Collection 'PeerMentorLinks' found in Redis.
+2024-12-24 11:12:32,108 - INFO - Collection 'Demographics' found in Redis.
+2024-12-24 11:12:45,715 - INFO - Collection 'Clubs' found in Redis.
+2024-12-24 11:12:47,430 - INFO - Collection 'Mentors' found in Redis.
+2024-12-24 11:12:47,471 - INFO - Collection 'Users' found in Redis.

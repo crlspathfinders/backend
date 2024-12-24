@@ -116,24 +116,45 @@ async def read_document(collection: str, id: str):
         return {"status": -1, "error_message": coll_id["error_message"]}
 
 # Read a collection:
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Adjust the level as needed
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filename="app.log",  # Log messages will be written to this file
+    filemode="a",  # Append to the log file
+)
+
 @app.get("/read/{collection}")
 async def read_collection(collection: str):
-    redis_collection = get_redis_collection(collection)
-    # print(redis_collection)
-    status = redis_collection["status"]
+    try:
+        redis_collection = get_redis_collection(collection)
+        status = redis_collection["status"]
 
-    if status == 0: # Found
-        return {"status": 0, "collection": redis_collection["results"]}
+        if status == 0:  # Found
+            logging.info(f"Collection '{collection}' found in Redis.")
+            return {"status": 0, "collection": redis_collection["results"]}
 
-    if status == -3: # No cache (collection not in redis)
-        # If not in cache, then add it to cache
-        add_collection = add_redis_collection(collection)
-        if add_collection["status"] == 0:
-            return {"status": 0, "collection": add_collection["collection"]}
-        return {"status": -1, "error_message": add_collection["error_message"]}
-    
-    if status == -1:
-        return {"status": -1, "error_message": redis_collection["error_message"]}
+        if status == -3:  # No cache (collection not in Redis)
+            logging.warning(f"Collection '{collection}' not found in Redis. Adding to cache.")
+            # If not in cache, then add it to cache
+            add_collection = add_redis_collection(collection)
+            if add_collection["status"] == 0:
+                logging.info(f"Collection '{collection}' successfully added to Redis.")
+                return {"status": 0, "collection": add_collection["collection"]}
+            error_message = add_collection["error_message"]
+            logging.error(f"Failed to add collection '{collection}' to Redis: {error_message}")
+            return {"status": -1, "error_message": error_message}
+
+        if status == -1:
+            error_message = redis_collection["error_message"]
+            logging.error(f"Error retrieving collection '{collection}' from Redis: {error_message}")
+            return {"status": -1, "error_message": error_message}
+
+    except Exception as e:
+        logging.critical(f"Critical error in read_collection function for '{collection}': {str(e)}")
+        return {"status": -1, "error_message": "An unexpected error occurred."}
 
 # @app.get("/read/{collection}")
 # async def read_collection(collection: str):

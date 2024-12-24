@@ -2,6 +2,7 @@ from .model import db, get_el_id, get_doc, get_collection_python
 from fastapi import HTTPException, Header, Depends
 from firebase_admin import auth
 from sendmail import send_mail
+from .redismodel import redis, get_redis_collection_id
 
 def make_user(email, is_leader, role, leading, joined_clubs):
     collection = "Users"
@@ -71,17 +72,15 @@ def get_current_user(authorization: str = Header(...)):
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-# Redis testing:
-from upstash_redis import Redis
-
-redis = Redis(url="https://welcomed-kiwi-27133.upstash.io", token="AWn9AAIjcDExYTU0MzNlMmExOTg0ZTk0OGM0YmM3YThiNDllMDA0YnAxMA")
-
 def get_user_from_email(email):
     collection = "Users"
     try:
         doc_id = get_el_id("Users", email)
-        user = db.collection(collection).document(doc_id).get().to_dict()
-        return user
+        # user = db.collection(collection).document(doc_id).get().to_dict()
+        user = get_redis_collection_id("Users", doc_id)
+        print(user)
+        if user["status"] == 0:
+            return user["target_val"]
     except Exception as e:
         return f"Failed to getuserfromemail: {e}"
     
