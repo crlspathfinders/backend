@@ -7,20 +7,56 @@ load_dotenv()
 
 redis = Redis(url=os.environ.get("REDIS_URL"), token=os.environ.get("REDIS_TOKEN"))
 
-def get_redis_from_cache(collection): # Not done yet - continue % complete later (last step maybe).
-    try:
-        cached_data = redis.get(collection)
-        print("Found cache")
-        print(cached_data)
-    except Exception as e:
-        print(f"Failed to get cache: {e}")
-        response = get_redis_collection(collection)
-        print(response)
-        new_response = response["results"]
-        print(f"new response: {new_response}")
+def format_json(docs):
+    results = []
+    for key, value in docs.items():
+        # Decode the key and value if they are bytes
+        key_str = key.decode('utf-8') if isinstance(key, bytes) else key
+        value_str = value.decode('utf-8') if isinstance(value, bytes) else value
         
-        # Store the data in Redis cache with a 10-minute expiration
-        redis.setex("Mentors", 600, new_response)
+        # If value_str is a valid JSON string, load it into a Python dictionary
+        try:
+            # Try to parse the value as JSON
+            data = json.loads(value_str)
+        except json.JSONDecodeError:
+            # If not valid JSON, just keep it as a string
+            data = value_str
+
+        # Append the transformed dictionary to the results list
+        data["id"] = key_str
+        results.append(data)
+
+    # Sort the data list alphabetically by id
+    results.sort(key=lambda x: x["id"])
+
+    # Convert results to JSON string
+    json_results = json.dumps(results)
+
+    return json_results
+
+def get_redis_cached_data(collection):
+    try:
+        docs = redis.hgetall(collection)  # Get field data from hash
+        if docs:
+            return format_json(docs)
+        return None
+    except Exception as e:
+        print(f"Redis error: {e}")
+        return None
+
+# Function to set data in a Redis hash
+def set_redis_cached_data(collection, data, expiry = 3600):
+    try:
+        data = json.loads(data)
+        for d in data:
+            doc_id = d["id"]
+            new_data = json.dumps(d)
+            redis.hset(collection, doc_id, new_data)
+        redis.expire(collection, expiry)  # Set an expiry time for the hash key
+        return {"status": 0}
+    except Exception as e:
+        print(f"Redis error: {e}")
+        return {"status": -1, "error_message": e}
 
 def check_upstash_usage():
     """
@@ -52,38 +88,16 @@ def get_redis_collection(collection):
         docs = redis.hgetall(collection)
 
         if docs:
-            results = []
-            for key, value in docs.items():
-                # Decode the key and value if they are bytes
-                key_str = key.decode('utf-8') if isinstance(key, bytes) else key
-                value_str = value.decode('utf-8') if isinstance(value, bytes) else value
-                
-                # If value_str is a valid JSON string, load it into a Python dictionary
-                try:
-                    # Try to parse the value as JSON
-                    data = json.loads(value_str)
-                except json.JSONDecodeError:
-                    # If not valid JSON, just keep it as a string
-                    data = value_str
-
-                # Append the transformed dictionary to the results list
-                data["id"] = key_str
-                results.append(data)
-
-            # Sort the data list alphabetically by id
-            results.sort(key=lambda x: x["id"])
-
-            # Convert results to JSON string
-            json_results = json.dumps(results)
+            json_results = format_json(docs)
 
             return {"status": 0, "results": json_results}
 
-        else: # If the cache is not updated
-            return {"status": -3, "error_message": "Cache is empty"} 
+        else: # If the redis is not updated
+            return {"status": -3, "error_message": "redis is empty"} 
         
     except Exception as e:
         print(f"Error getting collection: {e}")
-        return {"status": -1, "error_message": f"Failed to check redis cache: {e}"}
+        return {"status": -1, "error_message": f"Failed to check redis: {e}"}
     
 def get_redis_collection_id(collection, target_id):
     try:
