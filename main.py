@@ -122,7 +122,7 @@ import logging
 logging.basicConfig(
     level=logging.INFO,  # Adjust the level as needed
     format="%(asctime)s - %(levelname)s - %(message)s",
-    filename="app.logs",  # Log messages will be written to this file
+    filename="pathfinders.log",  # Log messages will be written to this file
     filemode="a",  # Append to the log file
 )
 
