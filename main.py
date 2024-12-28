@@ -8,13 +8,14 @@ from typing import List
 from datetime import timedelta
 from pydantic import BaseModel
 from models.model import get_collection_id, get_collection, get_sub_collection, remove_id, get_collection_python
-from routers import user, club, mentor, peermentor
+from routers import user, club, mentor, peermentor, allinfo
 from requests_cache import CachedSession
 from dotenv import load_dotenv
 from sendmail import send_mail
 from upstash_redis import Redis
 from models.redismodel import get_redis_collection, add_redis_collection, get_redis_collection_id, add_redis_collection_id, delete_redis_data
 from fastapi.responses import JSONResponse
+# import logfire
 
 load_dotenv()
 curr_url = os.environ.get("CURR_URL")
@@ -32,6 +33,13 @@ redis = Redis(url=os.environ.get("REDIS_URL"), token=os.environ.get("REDIS_TOKEN
 # Create virtual environment: python3 -m venv venv
 
 app = FastAPI()
+
+# logfire.configure()
+# logfire.instrument_fastapi(app)
+
+# @app.get("/hello")
+# async def hello(name: str):
+#     return {"message": f"hello {name}"}
 
 origins = [
     "http://localhost:5173",
@@ -62,6 +70,7 @@ app.include_router(user.router)
 app.include_router(club.router)
 app.include_router(mentor.router)
 app.include_router(peermentor.router)
+app.include_router(allinfo.router)
 
 # Model schemas:
 
@@ -75,7 +84,7 @@ app.include_router(peermentor.router)
 #     expire_after=10 # 10 s
 # )
 
-cached_mentors = CachedSession(
+cached_data = CachedSession(
     backend='sqlite',
     cache_name="cache.sqlite",  # SQLite database file
     expire_after=10
@@ -84,11 +93,12 @@ cached_mentors = CachedSession(
 @app.get("/cache/{collection}")
 def cache_mentors(collection: str):
     print(f"{curr_url}read/{collection}")
-    mentors = cached_mentors.get(f"{curr_url}read/{collection}")
-    return mentors.json()
+    data = cached_data.get(f"{curr_url}read/{collection}")
+    return data.json()
 
 @app.get("/")
 def home():
+    # logfire.info('Hello, {name}!', name='world')
     return {"status": "rehaan"}
 
 @app.get("/add/{num1}/{num2}")
@@ -114,18 +124,7 @@ async def read_document(collection: str, id: str):
         return {"status": -1, "error_message": add_id["error_message"]}
     if status == -1:
         return {"status": -1, "error_message": coll_id["error_message"]}
-
-# Read a collection:
-# import logging
-
-# Configure logging
-# logging.basicConfig(
-#     level=logging.INFO,  # Adjust the level as needed
-#     format="%(asctime)s - %(levelname)s - %(message)s",
-#     filename="pathfinders.log",  # Log messages will be written to this file
-#     filemode="a",  # Append to the log file
-# )
-
+    
 @app.get("/read/{collection}")
 async def read_collection(collection: str):
     try:
