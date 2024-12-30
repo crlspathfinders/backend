@@ -1,15 +1,37 @@
-from fastapi import APIRouter, Form, FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status, APIRouter, Form
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets, os
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Annotated
 from models.clubmodel import make_club, change_club, update_status, remove_club, verify_club_model, upload_club_image, delete_club_image, set_club_image_doc
 from models.model import get_collection_python, get_el_id, get_doc, get_collection, get_collection_id
 from models.redismodel import add_redis_collection_id, delete_redis_id
 from models.usermodel import join_leave_club
 from sendmail import send_mail
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
+
+security = HTTPBasic()
+
+def get_current_username(credentials: Annotated[HTTPBasicCredentials, Depends(security)]):
+    current_username_bytes = credentials.username.encode("utf8")
+    correct_username_bytes = bytes(os.environ.get("AUTH_USERNAME"), "utf-8")
+    is_correct_username = secrets.compare_digest(
+        current_username_bytes, correct_username_bytes
+    )
+    current_password_bytes = credentials.password.encode("utf8")
+    correct_password_bytes = bytes(os.environ.get("AUTH_PASSWORD"), "utf-8")
+    is_correct_password = secrets.compare_digest(
+        current_password_bytes, correct_password_bytes
+    )
+    if not (is_correct_username and is_correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
 
 router = APIRouter(
     tags=["club"]
@@ -29,7 +51,7 @@ class Club(BaseModel):
     vice_president_emails: List[str]
 
 @router.post("/createclub/")
-async def create_info(club: Club):
+async def create_info(club: Club, username: Annotated[str, Depends(get_current_username)]):
     try:
         # Client side makes sure that the president email and advisor emails are correct, etc.
         # Make club will make create it as Pending -> will wait for advisor verification to Approve it.
@@ -79,7 +101,7 @@ Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
         return {"status": f"Failed to create club: {e}"}
 
 @router.post("/updateclub/")
-async def update_club(club: Club):
+async def update_club(club: Club, username: Annotated[str, Depends(get_current_username)]):
     try:
         change_club(club.advisor_email, club.club_days, club.club_description, club.club_name, club.president_email, club.room_number, club.google_classroom_link, club.secret_password, club.start_time, club.status, club.vice_president_emails)
         club_id = get_el_id("Clubs", club.secret_password)
@@ -96,7 +118,7 @@ class ChangeStatus(BaseModel):
     status: str
 
 @router.post("/changestatus/")
-def change_status(change_status: ChangeStatus):
+def change_status(change_status: ChangeStatus, username: Annotated[str, Depends(get_current_username)]):
     try:
         update_status(change_status.secret_password, change_status.status)
         club_id = get_el_id("Clubs", change_status.secret_password)
@@ -107,7 +129,7 @@ def change_status(change_status: ChangeStatus):
         return {"status": f"Failed to change status: {e}"}
     
 @router.get("/deleteclub/{club_id}")
-def delete_club(club_id: str):
+def delete_club(club_id: str, username: Annotated[str, Depends(get_current_username)]):
     try:
         del_id = delete_redis_id("Clubs", club_id)
         if del_id["status"] == 0:
@@ -132,7 +154,7 @@ class VerifyClub(BaseModel):
     secret_password: int
 
 @router.post("/verifyclub")
-def verify_club(verify: VerifyClub):
+def verify_club(verify: VerifyClub, username: Annotated[str, Depends(get_current_username)]):
     try:
         status = verify_club_model(verify.secret_password)
         # print()
@@ -142,7 +164,7 @@ def verify_club(verify: VerifyClub):
         return {"status": "Failed", "error": e}
 
 @router.post("/uploadclubimage/")
-async def upload_image(file: UploadFile = File(...), old_file_name: Optional[str] = Form(None)):
+async def upload_image(username: Annotated[str, Depends(get_current_username)], file: UploadFile = File(...), old_file_name: Optional[str] = Form(None)):
     print(file)
     try:
         # Validate file type
@@ -164,7 +186,7 @@ class SetClubImg(BaseModel):
     old_id: str
 
 @router.post("/setclubimg/")
-async def set_club_img(upload: SetClubImg):
+async def set_club_img(upload: SetClubImg, username: Annotated[str, Depends(get_current_username)]):
     if upload.img_url != "Failed":
         set_club_image_doc(upload.club_id, upload.img_url, upload.old_id)
         coll_id = get_collection_id("Clubs", upload.club_id)

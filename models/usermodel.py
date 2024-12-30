@@ -133,6 +133,15 @@ def change_user_role(email, role):
     
 def delete_user(email):
     try:
+        print("starting user delete")
+        # Delete user from Firebase auth:
+        user_record = auth.get_user_by_email(email)
+        print(f"user record: {user_record}")
+        user_id = user_record.uid
+        print(f"User ID from Firebase Auth - {user_id}")
+        # Delete the user from Firebase Authentication
+        auth.delete_user(user_id)
+        print(f"User successfully deleted from Firebase Authentication")
         user_id = get_el_id("Users", email)
         print(f"userid - {user_id}")
         db.collection("Users").document(user_id).delete()
