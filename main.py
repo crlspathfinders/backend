@@ -84,17 +84,17 @@ app.include_router(allinfo.router)
 #     expire_after=10 # 10 s
 # )
 
-cached_data = CachedSession(
-    backend='sqlite',
-    cache_name="cache.sqlite",  # SQLite database file
-    expire_after=10
-)
+# cached_data = CachedSession(
+#     backend='sqlite',
+#     cache_name="cache.sqlite",  # SQLite database file
+#     expire_after=10
+# )
 
-@app.get("/cache/{collection}")
-def cache_mentors(collection: str):
-    print(f"{curr_url}read/{collection}")
-    data = cached_data.get(f"{curr_url}read/{collection}")
-    return data.json()
+# @app.get("/cache/{collection}")
+# def cache_mentors(collection: str):
+#     print(f"{curr_url}read/{collection}")
+#     data = cached_data.get(f"{curr_url}read/{collection}")
+#     return data.json()
 
 @app.get("/")
 def home():
