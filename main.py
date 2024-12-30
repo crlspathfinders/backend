@@ -1,10 +1,12 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
 from fastapi.middleware.cors import CORSMiddleware
 from cloudinary.utils import cloudinary_url
 import os, sys, io
 import json, tempfile, mimetypes
 from fastapi.responses import StreamingResponse
-from typing import List
+from typing import List, Annotated
 from datetime import timedelta
 from pydantic import BaseModel
 from models.model import get_collection_id, get_collection, get_sub_collection, remove_id, get_collection_python
@@ -15,7 +17,7 @@ from sendmail import send_mail
 from upstash_redis import Redis
 from models.redismodel import get_redis_collection, add_redis_collection, get_redis_collection_id, add_redis_collection_id, delete_redis_data
 from fastapi.responses import JSONResponse
-# import logfire
+
 
 load_dotenv()
 curr_url = os.environ.get("CURR_URL")
@@ -33,6 +35,8 @@ redis = Redis(url=os.environ.get("REDIS_URL"), token=os.environ.get("REDIS_TOKEN
 # Create virtual environment: python3 -m venv venv
 
 app = FastAPI()
+
+security = HTTPBasic()
 
 # logfire.configure()
 # logfire.instrument_fastapi(app)
@@ -96,13 +100,36 @@ app.include_router(allinfo.router)
 #     data = cached_data.get(f"{curr_url}read/{collection}")
 #     return data.json()
 
+def get_current_username(credentials: Annotated[HTTPBasicCredentials, Depends(security)]):
+    current_username_bytes = credentials.username.encode("utf8")
+    correct_username_bytes = bytes(os.environ.get("AUTH_USERNAME"), "utf-8")
+    is_correct_username = secrets.compare_digest(
+        current_username_bytes, correct_username_bytes
+    )
+    current_password_bytes = credentials.password.encode("utf8")
+    correct_password_bytes = bytes(os.environ.get("AUTH_PASSWORD"), "utf-8")
+    is_correct_password = secrets.compare_digest(
+        current_password_bytes, correct_password_bytes
+    )
+    if not (is_correct_username and is_correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
+@app.get("/users/me")
+def read_current_user(username: Annotated[str, Depends(get_current_username)]):
+    return {"username": username}
+
 @app.get("/")
-def home():
-    # logfire.info('Hello, {name}!', name='world')
+def home(username: Annotated[str, Depends(get_current_username)]):
+    print(username)
     return {"status": "rehaan"}
 
 @app.get("/add/{num1}/{num2}")
-def add_nums(num1: int, num2: int):
+def add_nums(num1: int, num2: int, username: Annotated[str, Depends(get_current_username)]):
     result = num1 + num2
     return {"data": result}
 
@@ -111,7 +138,7 @@ def test():
     return {"hello": "world"}
 
 @app.get("/read/{collection}/{id}")
-async def read_document(collection: str, id: str):
+async def read_document(collection: str, id: str, username: Annotated[str, Depends(get_current_username)]):
     coll_id = get_redis_collection_id(collection, id)
     status = coll_id["status"]
     if status == 0: # Found
@@ -126,7 +153,7 @@ async def read_document(collection: str, id: str):
         return {"status": -1, "error_message": coll_id["error_message"]}
     
 @app.get("/read/{collection}")
-async def read_collection(collection: str):
+async def read_collection(collection: str, username: Annotated[str, Depends(get_current_username)]):
     try:
         redis_collection = get_redis_collection(collection)
         status = redis_collection["status"]
@@ -189,12 +216,12 @@ async def read_collection(collection: str):
 
 # Read a sub-collection
 @app.get("/read/{collection}/{id}/{subcollection}")
-async def read_sub_collection(collection: str, id: str, subcollection: str):
+async def read_sub_collection(collection: str, id: str, subcollection: str, username: Annotated[str, Depends(get_current_username)]):
     return get_sub_collection(collection, id, subcollection)
 
 # Delete (delete the document itself, not the info, so only need the document parameter):
 @app.get("/delete/{collection}/{id}")
-async def delete_info(collection: str, id: str):
+async def delete_info(collection: str, id: str, username: Annotated[str, Depends(get_current_username)]):
     del_redis = delete_redis_data(collection, id)
     print(del_redis)
     return remove_id(collection, id)
@@ -206,7 +233,7 @@ class SendMassEmail(BaseModel):
     recipients: List[str]
 
 @app.post("/emailall/")
-def email_all(email: SendMassEmail):
+def email_all(email: SendMassEmail, username: Annotated[str, Depends(get_current_username)]):
     sendees = get_collection_python(email.collection)
     emails = []
     if email.collection == "Clubs":
@@ -229,7 +256,7 @@ def email_all(email: SendMassEmail):
             return {"status": -1, "error_message": e}
         
 @app.get("/emailone/{subject}/{body}/{receiver}")
-def email_one(subject: str, body: str, receiver: str):
+def email_one(subject: str, body: str, receiver: str, username: Annotated[str, Depends(get_current_username)]):
     try:
         send_mail(receiver, subject, body)
         print("sent email successfully")

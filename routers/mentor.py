@@ -1,7 +1,9 @@
 
-from fastapi import APIRouter, File, UploadFile, Form, HTTPException, FastAPI
+from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status, APIRouter, Form
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Annotated
 from models.mentormodel import make_mentor, change_mentor, remove_mentor, upload_mentor_image, set_mentor_image_doc, show_or_hide_mentor, update_mentor_hours, update_hours_worked_catalog, confirm_mentor_mentee_logging, delete_mentor_image, get_mentor_description
 from models.usermodel import update_mentee_catalog
 from models.model import get_el_id, get_collection_id
@@ -12,6 +14,27 @@ from dotenv import load_dotenv
 
 load_dotenv()
 curr_url = os.environ.get("CURR_URL")
+
+security = HTTPBasic()
+
+def get_current_username(credentials: Annotated[HTTPBasicCredentials, Depends(security)]):
+    current_username_bytes = credentials.username.encode("utf8")
+    correct_username_bytes = bytes(os.environ.get("AUTH_USERNAME"), "utf-8")
+    is_correct_username = secrets.compare_digest(
+        current_username_bytes, correct_username_bytes
+    )
+    current_password_bytes = credentials.password.encode("utf8")
+    correct_password_bytes = bytes(os.environ.get("AUTH_PASSWORD"), "utf-8")
+    is_correct_password = secrets.compare_digest(
+        current_password_bytes, correct_password_bytes
+    )
+    if not (is_correct_username and is_correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
 
 router = APIRouter(
     tags=["mentor"]
@@ -29,7 +52,7 @@ class Mentor(BaseModel):
     academics: List[str]
 
 @router.post("/creatementor/")
-async def create_mentor(mentor: Mentor):
+async def create_mentor(mentor: Mentor, username: Annotated[str, Depends(get_current_username)]):
     try:
         print("create mentor start")
         make_mentor(mentor.firstname, mentor.lastname, mentor.bio, mentor.email, mentor.races, mentor.religions, mentor.gender, mentor.languages, mentor.academics)
@@ -44,7 +67,7 @@ async def create_mentor(mentor: Mentor):
         return {"status": f"Failed to create mentor: {e}"}
 
 @router.post("/updatementor/")
-async def update_mentor(mentor: Mentor):
+async def update_mentor(mentor: Mentor, username: Annotated[str, Depends(get_current_username)]):
     try:
         change_mentor(mentor.firstname, mentor.lastname, mentor.bio, mentor.email, mentor.races, mentor.religions, mentor.gender, mentor.languages, mentor.academics)
         mentor_id = get_el_id("Mentors", mentor.email)
@@ -56,7 +79,7 @@ async def update_mentor(mentor: Mentor):
         return {"status": f"Failed to edit mentor: {e}"}
     
 @router.get("/deletementor/{email}")
-async def delete_mentor(email: str):
+async def delete_mentor(email: str, username: Annotated[str, Depends(get_current_username)]):
     try:
         mentor_id = get_el_id("Mentors", email)
         del_id = delete_redis_id("Mentors", mentor_id)
@@ -76,7 +99,7 @@ def delete_img(old_url: str):
 # Something like that^
 
 @router.post("/uploadmentorimage/")
-async def upload_image(file: UploadFile = File(...), old_file_name: Optional[str] = Form(None)):
+async def upload_image(username: Annotated[str, Depends(get_current_username)], file: UploadFile = File(...), old_file_name: Optional[str] = Form(None)):
     print(file)
     try:
         # Validate file type
@@ -97,7 +120,7 @@ class SetClubImg(BaseModel):
     mentor_email: str
 
 @router.post("/setmentorimg/")
-async def set_club_img(upload: SetClubImg):
+async def set_club_img(upload: SetClubImg, username: Annotated[str, Depends(get_current_username)]):
     if upload.img_url != "Failed":
         set_mentor_image_doc(upload.mentor_email, upload.img_url)
         mentor_id = get_el_id("Mentors", upload.mentor_email)
@@ -113,7 +136,7 @@ class MentorPitch(BaseModel):
     pitch: str 
 
 @router.post("/sendmentorpitch/")
-async def send_mentor_pitch(mentor_pitch: MentorPitch):
+async def send_mentor_pitch(mentor_pitch: MentorPitch, username: Annotated[str, Depends(get_current_username)]):
     receiver = "crlspathfinders25@gmail.com"
     subject = f"Mentor pitch from {mentor_pitch.mentor_email}"
     body = f'''Mentor pitch received from {mentor_pitch.mentor_email}
@@ -136,7 +159,7 @@ class MentorMenteeLog(BaseModel):
     log_hours: str
 
 @router.post("/mentormenteelogs/")
-def log_mentor_mentee(log: MentorMenteeLog):
+def log_mentor_mentee(log: MentorMenteeLog, username: Annotated[str, Depends(get_current_username)]):
     print("started mentormentee logs")
     # Send crlspathfinders25 the log, send mentor the confirmation, and send mentee the confirmation.
     try:
@@ -223,7 +246,7 @@ Abel Asefaw '25
         return {"status": f"Failed to send logging email: {e}"}
 
 @router.get("/toggleshowmentor/{mentor_email}/")
-def toggle_show_mentor(mentor_email: str):
+def toggle_show_mentor(mentor_email: str, username: Annotated[str, Depends(get_current_username)]):
     return show_or_hide_mentor(mentor_email)
 
 class MenteeConfirmHours(BaseModel):
@@ -235,7 +258,7 @@ class MenteeConfirmHours(BaseModel):
     mentee_description: str
 
 @router.post("/menteeconfirmhours/")
-def mentee_confirm_hours(mentee_log: MenteeConfirmHours):
+def mentee_confirm_hours(mentee_log: MenteeConfirmHours, username: Annotated[str, Depends(get_current_username)]):
     confirm = mentee_log.confirm
     catalog_id = mentee_log.catalog_id
     mentee_email = mentee_log.mentee_email

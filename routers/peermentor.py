@@ -1,9 +1,35 @@
-from fastapi import APIRouter
+from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status, APIRouter, Form
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets, os
+from dotenv import load_dotenv
 from pydantic import BaseModel
-from typing import List
+from typing import List, Annotated
 from models.peermentormodel import create_link, remove_link, update_link, update_category, create_category, delete_category
 from models.model import get_el_id, get_collection_id
 from models.redismodel import add_redis_collection_id, delete_redis_id
+
+load_dotenv()
+
+security = HTTPBasic()
+
+def get_current_username(credentials: Annotated[HTTPBasicCredentials, Depends(security)]):
+    current_username_bytes = credentials.username.encode("utf8")
+    correct_username_bytes = bytes(os.environ.get("AUTH_USERNAME"), "utf-8")
+    is_correct_username = secrets.compare_digest(
+        current_username_bytes, correct_username_bytes
+    )
+    current_password_bytes = credentials.password.encode("utf8")
+    correct_password_bytes = bytes(os.environ.get("AUTH_PASSWORD"), "utf-8")
+    is_correct_password = secrets.compare_digest(
+        current_password_bytes, correct_password_bytes
+    )
+    if not (is_correct_username and is_correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
 
 router = APIRouter(
     tags=["peermentor"]
@@ -17,7 +43,7 @@ class Link(BaseModel):
     deadline: str
 
 @router.post("/addlink/")
-async def add_link(link: Link):
+async def add_link(link: Link, username: Annotated[str, Depends(get_current_username)]):
     try:
         # TO-DO later: Make sure the name is unique.
         create_link(link.link_name, link.link_url, link.categories, link.bio, link.deadline)
@@ -34,7 +60,7 @@ async def add_link(link: Link):
         return {"status": f"Failed to create pml link: {e}"}
     
 @router.get("/deletelink/{link_name}")
-async def delete_link(link_name):
+async def delete_link(link_name, username: Annotated[str, Depends(get_current_username)]):
     try:
         pml_id = get_el_id("PeerMentorLinks", link_name)
         del_id = delete_redis_id("PeerMentorLinks", pml_id)
@@ -55,7 +81,7 @@ class EditLink(BaseModel):
     deadline: str
 
 @router.post("/editlink/")
-async def edit_link(edit_link: EditLink):
+async def edit_link(edit_link: EditLink, username: Annotated[str, Depends(get_current_username)]):
     try:
         update_link(edit_link.old_name, edit_link.new_name, edit_link.new_url, edit_link.categories, edit_link.bio, edit_link.deadline)
         pml_id = get_el_id("PeerMentorLinks", edit_link.new_name)
@@ -73,7 +99,7 @@ class EditCategory(BaseModel):
     new_cat_name: str
 
 @router.post("/editcategory/")
-def edit_category(edit_cat: EditCategory):
+def edit_category(edit_cat: EditCategory, username: Annotated[str, Depends(get_current_username)]):
     update_category(edit_cat.old_cat_name, edit_cat.new_cat_name)
     pml_id = "PeerMentor"
     coll_id = get_collection_id("Demographics", pml_id)
@@ -84,7 +110,7 @@ class NewCategory(BaseModel):
     new_cat: str
 
 @router.post("/addcategory")
-def add_category(category: NewCategory):
+def add_category(category: NewCategory, username: Annotated[str, Depends(get_current_username)]):
     create_category(category.new_cat)
     pml_id = "PeerMentor"
     coll_id = get_collection_id("Demographics", pml_id)
@@ -92,7 +118,7 @@ def add_category(category: NewCategory):
     print(add_id)
 
 @router.post("/deletecategory")
-def add_category(category: NewCategory):
+def add_category(category: NewCategory, username: Annotated[str, Depends(get_current_username)]):
     delete_category(category.new_cat)
     pml_id = "PeerMentor"
     coll_id = get_collection_id("Demographics", pml_id)
