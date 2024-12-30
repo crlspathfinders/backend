@@ -63,8 +63,8 @@ async def update_user(user: User, username: Annotated[str, Depends(get_current_u
 class Token(BaseModel):
     token: str
 
-@router.post("/verify-token")
-def verify_token_route(token: Token, username: Annotated[str, Depends(get_current_username)]):
+@router.post("/verify-token") 
+def verify_token_route(token: Token):
     decoded_token = verify_token(token.token)
     return {"uid": decoded_token["uid"], "email": decoded_token.get("email")}
 
