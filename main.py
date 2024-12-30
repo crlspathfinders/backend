@@ -226,3 +226,12 @@ def email_all(email: SendMassEmail):
             return {"status": 0}
         except Exception as e:
             return {"status": -1, "error_message": e}
+        
+@app.get("/emailone/{subject}/{body}/{receiver}")
+def email_one(subject: str, body: str, receiver: str):
+    try:
+        send_mail(receiver, subject, body)
+        print("sent email successfully")
+        return {"status": 0}
+    except Exception as e:
+        return {"status": -1, "error_message": e}
