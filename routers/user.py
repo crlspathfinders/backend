@@ -36,7 +36,7 @@ async def update_user(user: User):
 class Token(BaseModel):
     token: str
 
-@router.post("/verify-token")
+@router.post("/verify-token") 
 def verify_token_route(token: Token):
     decoded_token = verify_token(token.token)
     return {"uid": decoded_token["uid"], "email": decoded_token.get("email")}
