@@ -131,6 +131,8 @@ async def read_collection(collection: str):
         redis_collection = get_redis_collection(collection)
         status = redis_collection["status"]
 
+        print(f"status: {status}, collection: {collection}")
+
         if status == 0:  # Found
             # logging.info(f"Collection '{collection}' found in Redis.")
             return {"status": 0, "collection": redis_collection["results"]}
