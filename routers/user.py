@@ -8,6 +8,7 @@ from typing import Annotated, List
 from models.model import get_el_id, get_doc, get_collection_python, get_collection_id
 from models.clubmodel import get_members, manage_members, get_secret_pass
 from models.redismodel import add_redis_collection_id, delete_redis_id
+import json
 
 load_dotenv()
 
@@ -99,7 +100,7 @@ def make_new_user(user: User, username: Annotated[str, Depends(get_current_usern
         return {"status": f"Failed to make user: {e}"}
 
 @router.get("/user-info")
-def get_user_info(username: Annotated[str, Depends(get_current_username)], current_user: dict = Depends(get_current_user)):
+def get_user_info(current_user: dict = Depends(get_current_user)):
     email = current_user.get("email")
     uid = current_user.get("uid")
     # Create the User document in Firestore here.
@@ -116,8 +117,17 @@ def get_user_doc_data(email: str, username: Annotated[str, Depends(get_current_u
 @router.get("/toggleclub/{email}/{club_id}")
 def toggle_club(email: str, club_id: str, username: Annotated[str, Depends(get_current_username)]):
     user = get_user_from_email(email)
-    clubs = user["joined_clubs"]
-    # print(clubs)
+    # print("---------------------------")
+    # print(user)
+    # print("---------------------------")
+    # print(user[0])
+    # print("---------------------------")
+    # print(json.loads(user[0]))
+    # print("---------------------------")
+    # temp = json.loads(user[0])
+    # print(temp["joined_clubs"])
+    clubs = json.loads(user[0])["joined_clubs"]
+    print(clubs)
 
     members = get_members(club_id)
     secret_password = get_secret_pass(club_id)
@@ -147,7 +157,7 @@ def toggle_club(email: str, club_id: str, username: Annotated[str, Depends(get_c
             add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
             return {"status": "Successfully joined club"}
         except Exception as e:
-            return {"status": f"Failed to leave club: {e}"}
+            return {"status": f"Failed to join club: {e}"}
 
 class ChangeRole(BaseModel):
     email: str
