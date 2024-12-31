@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-cred = credentials.Certificate(json.loads(os.environ.get("FIREBASE_ACCOUNT_KEY")))
+cred = credentials.Certificate(json.loads(os.environ.get("FIREBASE_ACCOUNT_KEY"))) 
 firebase_admin.initialize_app(cred, {
     "storageBucket": os.environ.get("FIREBASE_STORAGE_BUCKET")
 })
