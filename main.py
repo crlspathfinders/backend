@@ -10,7 +10,7 @@ from typing import List, Annotated
 from datetime import timedelta
 from pydantic import BaseModel
 from models.model import get_collection_id, get_collection, get_sub_collection, remove_id, get_collection_python
-from routers import user, club, mentor, peermentor, allinfo
+from routers import user, club, mentor, peermentor, allinfo, libraryinfo
 from requests_cache import CachedSession
 from dotenv import load_dotenv
 from sendmail import send_mail
@@ -75,6 +75,7 @@ app.include_router(club.router)
 app.include_router(mentor.router)
 app.include_router(peermentor.router)
 app.include_router(allinfo.router)
+app.include_router(libraryinfo.router)
 
 # Model schemas:
 
