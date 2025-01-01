@@ -1,9 +1,10 @@
 .env
 __pycache__/
-# accountkey.json
 new_venv/
 routers/testenv.py
 models/testenv.py
 routers/routers_venv
 testenv.py
 cache/
+test_routes.py
+tests/
