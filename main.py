@@ -237,6 +237,10 @@ class SendMassEmail(BaseModel):
 def email_all(email: SendMassEmail, username: Annotated[str, Depends(get_current_username)]):
     sendees = get_collection_python(email.collection)
     emails = []
+    if email.collection == "Rehaan":
+        print("rehaan found")
+        send_mail("25ranjaria@cpsd.us", email.subject, email.body)
+        return {"status": 0}
     if email.collection == "Clubs":
         for s in sendees: 
             emails.append(s["president_email"])
