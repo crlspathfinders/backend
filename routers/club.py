@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Annotated
 from models.clubmodel import make_club, change_club, update_status, remove_club, verify_club_model, upload_club_image, delete_club_image, set_club_image_doc
 from models.model import get_collection_python, get_el_id, get_doc, get_collection, get_collection_id
-from models.redismodel import add_redis_collection_id, delete_redis_id
+from models.redismodel import add_redis_collection_id, delete_redis_id, add_redis_collection
 from models.usermodel import join_leave_club
 from sendmail import send_mail
 from dotenv import load_dotenv
@@ -60,6 +60,7 @@ async def create_info(club: Club, username: Annotated[str, Depends(get_current_u
         club_id = get_el_id("Clubs", club.secret_password)
         coll_id = get_collection_id("Clubs", club_id)
         add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
+        add_redis_collection("Users")
 
         # Now have to send email to advisor with password:
         receiver = club.advisor_email
