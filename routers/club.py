@@ -81,12 +81,14 @@ Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
         
         # Now send email to the club president:
         receiver = club.president_email
-        subject = f"CRLS Pathfinders | {club.club_name} Registration Submitted"
+        subject = f"CRLS Pathfinders | {club.club_name} Confirmation Code"
         body = f'''Hello {club.president_email},
 
-We have recieved {club.club_name}'s registration. Your advisor has recieved an email with a code to verify the club on the site.
-To verify {club.club_name}, ask your advisor for the code, log into crlspathfinders.com, select your email in the top right corner, hit "Verify Club," and then input that code.
-Once successful, {club.club_name} will appear after hitting "Find a Club."
+CONFIRMATION CODE: {club.secret_password}
+
+We have recieved {club.club_name}'s registration.  
+To verify {club.club_name}, log into crlspathfinders.com, select your email in the top right corner, hit "Verify Club," and then input the code above.
+Once successful, {club.club_name} will appear after hitting "Find a Club." Try reloading the page if it's not there.
 
 Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
 '''
