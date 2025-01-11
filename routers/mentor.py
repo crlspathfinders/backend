@@ -185,7 +185,6 @@ Hours: {log.log_hours}
 
 You have successfully logged your hours. The CRLS PathFinders team has recieved your hours, and a confirmation email has been sent to your mentee, {log.mentee_email}. Once they have confirmed that the hours are correct, your hours will be logged and you can receieve community service hours for your work.
 Below are your responses. To change anything, please send an email to crlspathfinders25@gmail.com or just fill out a new form.
-
 Mentee: {log.mentee_email}
 
 Description: {log.log_description}
