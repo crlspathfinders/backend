@@ -1,7 +1,7 @@
 from .model import db, get_el_id, get_doc, storage, get_collection_id
 from .usermodel import change_user_role, join_leave_club, change_is_leader
 from .mentormodel import extract_relative_path
-from .redismodel import add_redis_collection_id
+from .redismodel import add_redis_collection_id, add_redis_collection
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from uuid import uuid4
 from io import BytesIO
@@ -136,6 +136,10 @@ def manage_members(secret_password, new_members):
     doc_id = get_el_id(collection, secret_password)
     try:
         db.collection(collection).document(doc_id).update({"members": new_members})
+        club_id = get_el_id("Clubs", secret_password)
+        coll_id = get_collection_id("Clubs", club_id)
+        add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
+        add_redis_collection("Users")
         return {"status": "Successfully updated members"}
     except Exception as e:
         return {"status": f"Failed to update members: {e}"}

@@ -1,4 +1,5 @@
-from .model import db, get_el_id, get_doc, get_collection_python
+from .model import db, get_el_id, get_doc, get_collection_python, get_collection_id
+from .redismodel import add_redis_collection_id
 from fastapi import HTTPException, Header, Depends
 from firebase_admin import auth
 from sendmail import send_mail
@@ -113,9 +114,11 @@ def join_leave_club(join_leave, email, club):
 
         doc = db.collection("Users").document(user_id)
         doc.update({"joined_clubs": clubs})
+        coll_id = get_collection_id("Users", user_id)
+        add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
         return {"status": "Successfully left club"}
     except Exception as e:
-        return {"status": f"Failed to leave club: {e}"}
+        return {"status": f"Failed to join / leave club: {e}"}
 
 
 def change_user_role(email, role):
