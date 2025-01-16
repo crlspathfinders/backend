@@ -1,18 +1,18 @@
+import os
+import secrets
+from typing import List, Annotated
+
+from dotenv import load_dotenv
 from fastapi import (
-    FastAPI,
-    File,
-    UploadFile,
     Depends,
     HTTPException,
     status,
     APIRouter,
-    Form,
 )
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-import secrets, os
-from dotenv import load_dotenv
 from pydantic import BaseModel
-from typing import List, Annotated
+
+from models.model import get_el_id, get_collection_id
 from models.peermentormodel import (
     create_link,
     remove_link,
@@ -21,12 +21,38 @@ from models.peermentormodel import (
     create_category,
     delete_category,
 )
-from models.model import get_el_id, get_collection_id
 from models.redismodel import add_redis_collection_id, delete_redis_id
 
 load_dotenv()
 
 security = HTTPBasic()
+router = APIRouter(tags=["peermentor"])
+
+
+class Link(BaseModel):
+    link_name: str
+    link_url: str
+    categories: List[str]
+    bio: str
+    deadline: str
+
+
+class EditLink(BaseModel):
+    old_name: str
+    new_name: str
+    new_url: str
+    categories: List[str]
+    bio: str
+    deadline: str
+
+
+class EditCategory(BaseModel):
+    old_cat_name: str
+    new_cat_name: str
+
+
+class NewCategory(BaseModel):
+    new_cat: str
 
 
 def get_current_username(
@@ -51,19 +77,8 @@ def get_current_username(
     return credentials.username
 
 
-router = APIRouter(tags=["peermentor"])
-
-
-class Link(BaseModel):
-    link_name: str
-    link_url: str
-    categories: List[str]
-    bio: str
-    deadline: str
-
-
 @router.post("/addlink/")
-async def add_link(link: Link, username: Annotated[str, Depends(get_current_username)]):
+async def add_link(link: Link):
     try:
         # TO-DO later: Make sure the name is unique.
         create_link(
@@ -73,44 +88,27 @@ async def add_link(link: Link, username: Annotated[str, Depends(get_current_user
         coll_id = get_collection_id("PeerMentorLinks", pml_id)
         add_id = add_redis_collection_id("PeerMentorLinks", coll_id, pml_id=pml_id)
         if add_id["status"] == 0:
-            return {"status": "Successfully created pml"}
-        return {"status": f"Failed to update pml redis: {add_id["error_message"]}"}
-        # print(f"Successfully created pml link: {link.link_name}")
-        # return {"status": "Successfully created pml link"}
+            return {"status": 0}
+        return {"status": -10.1}
     except Exception as e:
-        print(f"Failed to create pml link: {e}")
-        return {"status": f"Failed to create pml link: {e}"}
+        return {"status": -10, "error_message": e}
 
 
 @router.get("/deletelink/{link_name}")
-async def delete_link(
-    link_name, username: Annotated[str, Depends(get_current_username)]
-):
+async def delete_link(link_name):
     try:
         pml_id = get_el_id("PeerMentorLinks", link_name)
         del_id = delete_redis_id("PeerMentorLinks", pml_id)
         if del_id["status"] == 0:
             remove_link(link_name)
-            return {"status": "Successfully deleted pml"}
-        return {"status": f"Failed to delete pml redis: {del_id["error_message"]}"}
+            return {"status": 0}
+        return {"status": -11.1}
     except Exception as e:
-        print(f"Failed to delete link: {e}")
-        return {"status": f"Failed to delete link: {e}"}
-
-
-class EditLink(BaseModel):
-    old_name: str
-    new_name: str
-    new_url: str
-    categories: List[str]
-    bio: str
-    deadline: str
+        return {"status": -11, "error_message": e}
 
 
 @router.post("/editlink/")
-async def edit_link(
-    edit_link: EditLink, username: Annotated[str, Depends(get_current_username)]
-):
+async def edit_link(edit_link: EditLink):
     try:
         update_link(
             edit_link.old_name,
@@ -124,50 +122,50 @@ async def edit_link(
         coll_id = get_collection_id("PeerMentorLinks", pml_id)
         add_id = add_redis_collection_id("PeerMentorLinks", coll_id, pml_id=pml_id)
         if add_id["status"] == 0:
-            return {"status": "Successfully edited pml"}
-        return {"status": f"Failed to update pml redis: {add_id["error_message"]}"}
+            return {"status": 0}
+        return {"status": -12.1}
     except Exception as e:
-        print(f"Failed to edit link: {e}")
-        return {"status": f"Failed to edit link: {e}"}
-
-
-class EditCategory(BaseModel):
-    old_cat_name: str
-    new_cat_name: str
-
-
-@router.post("/editcategory/")
-def edit_category(
-    edit_cat: EditCategory, username: Annotated[str, Depends(get_current_username)]
-):
-    update_category(edit_cat.old_cat_name, edit_cat.new_cat_name)
-    pml_id = "PeerMentor"
-    coll_id = get_collection_id("Demographics", pml_id)
-    add_id = add_redis_collection_id("Demographics", coll_id, pml_id=pml_id)
-    print(add_id)
-
-
-class NewCategory(BaseModel):
-    new_cat: str
+        return {"status": -12, "error_message": e}
 
 
 @router.post("/addcategory")
-def add_category(
-    category: NewCategory, username: Annotated[str, Depends(get_current_username)]
-):
-    create_category(category.new_cat)
-    pml_id = "PeerMentor"
-    coll_id = get_collection_id("Demographics", pml_id)
-    add_id = add_redis_collection_id("Demographics", coll_id, pml_id=pml_id)
-    print(add_id)
+def add_category(category: NewCategory):
+    try:
+        create_category(category.new_cat)
+        pml_id = "PeerMentor"
+        coll_id = get_collection_id("Demographics", pml_id)
+        add_id = add_redis_collection_id("Demographics", coll_id, pml_id=pml_id)
+        if add_id["status"] == 0:
+            return {"status": 0}
+        return {"status": -13.1}
+    except Exception as e:
+        return {"status": -13, "error_message": e}
 
 
+# This is called remove category because delete is another function already
 @router.post("/deletecategory")
-def add_category(
-    category: NewCategory, username: Annotated[str, Depends(get_current_username)]
-):
-    delete_category(category.new_cat)
-    pml_id = "PeerMentor"
-    coll_id = get_collection_id("Demographics", pml_id)
-    add_id = add_redis_collection_id("Demographics", coll_id, pml_id=pml_id)
-    print(add_id)
+def remove_category(category: NewCategory):
+    try:
+        delete_category(category.new_cat)
+        pml_id = "PeerMentor"
+        coll_id = get_collection_id("Demographics", pml_id)
+        add_id = add_redis_collection_id("Demographics", coll_id, pml_id=pml_id)
+        if add_id["status"] == 0:
+            return {"status": 0}
+        return {"status": -14.1}
+    except Exception as e:
+        return {"status": -14, "error_message": e}
+
+
+@router.post("/editcategory/")
+def edit_category(edit_cat: EditCategory):
+    try:
+        update_category(edit_cat.old_cat_name, edit_cat.new_cat_name)
+        pml_id = "PeerMentor"
+        coll_id = get_collection_id("Demographics", pml_id)
+        add_id = add_redis_collection_id("Demographics", coll_id, pml_id=pml_id)
+        if add_id["status"] == 0:
+            return {"status": 0}
+        return {"status": -15.1}
+    except Exception as e:
+        return {"status": -15, "error_message": e}

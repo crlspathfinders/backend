@@ -1,5 +1,9 @@
+import os
+import secrets
+from typing import List, Optional, Annotated
+
+from dotenv import load_dotenv
 from fastapi import (
-    FastAPI,
     File,
     UploadFile,
     Depends,
@@ -9,9 +13,8 @@ from fastapi import (
     Form,
 )
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-import secrets, os
 from pydantic import BaseModel
-from typing import List, Optional, Annotated
+
 from models.clubmodel import (
     make_club,
     change_club,
@@ -23,10 +26,7 @@ from models.clubmodel import (
     set_club_image_doc,
 )
 from models.model import (
-    get_collection_python,
     get_el_id,
-    get_doc,
-    get_collection,
     get_collection_id,
 )
 from models.redismodel import (
@@ -34,13 +34,41 @@ from models.redismodel import (
     delete_redis_id,
     add_redis_collection,
 )
-from models.usermodel import join_leave_club
 from sendmail import send_mail
-from dotenv import load_dotenv
 
 load_dotenv()
 
 security = HTTPBasic()
+router = APIRouter(tags=["club"])
+
+
+class Club(BaseModel):
+    advisor_email: str
+    club_days: List[str]
+    club_description: str
+    club_name: str
+    president_email: str
+    room_number: int
+    google_classroom_link: str
+    secret_password: int
+    start_time: str
+    status: str
+    vice_president_emails: List[str]
+
+
+class ChangeStatus(BaseModel):
+    secret_password: int
+    status: str
+
+
+class VerifyClub(BaseModel):
+    secret_password: int
+
+
+class SetClubImg(BaseModel):
+    img_url: str
+    club_id: str
+    old_id: str
 
 
 def get_current_username(
@@ -65,27 +93,8 @@ def get_current_username(
     return credentials.username
 
 
-router = APIRouter(tags=["club"])
-
-
-class Club(BaseModel):
-    advisor_email: str
-    club_days: List[str]
-    club_description: str
-    club_name: str
-    president_email: str
-    room_number: int
-    google_classroom_link: str
-    secret_password: int
-    start_time: str
-    status: str
-    vice_president_emails: List[str]
-
-
 @router.post("/createclub/")
-async def create_info(
-    club: Club, username: Annotated[str, Depends(get_current_username)]
-):
+async def create_info(club: Club):
     try:
         # Client side makes sure that the president email and advisor emails are correct, etc.
         # Make club will make create it as Pending -> will wait for advisor verification to Approve it.
@@ -105,7 +114,7 @@ async def create_info(
 
         club_id = get_el_id("Clubs", club.secret_password)
         coll_id = get_collection_id("Clubs", club_id)
-        add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
+        add_redis_collection_id("Clubs", coll_id, club_id=club_id)
         add_redis_collection("Users")
 
         # Now have to send email to advisor with password:
@@ -121,10 +130,8 @@ Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
 """
         try:
             send_mail(receiver, subject, body)
-            print("Sent mail")
         except Exception as e:
-            print(f"Failed to send mail: {e}")
-            return {"status": f"Failed to send mail: {e}"}
+            return {"status": -16, "error_message": e}
 
         # Now send email to the club president:
         receiver = club.president_email
@@ -133,7 +140,7 @@ Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
 
 CONFIRMATION CODE: {club.secret_password}
 
-We have recieved {club.club_name}'s registration.  
+We have received {club.club_name}'s registration.  
 To verify {club.club_name}, log into crlspathfinders.com, select your email in the top right corner, hit "Verify Club," and then input the code above.
 Once successful, {club.club_name} will appear after hitting "Find a Club." Try reloading the page if it's not there.
 
@@ -151,9 +158,7 @@ Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
 
 
 @router.post("/updateclub/")
-async def update_club(
-    club: Club, username: Annotated[str, Depends(get_current_username)]
-):
+async def update_club(club: Club):
     try:
         change_club(
             club.advisor_email,
@@ -178,32 +183,25 @@ async def update_club(
         return {"status": -18, "error_message": e}
 
 
-class ChangeStatus(BaseModel):
-    secret_password: int
-    status: str
-
-
 @router.post("/changestatus/")
-def change_status(
-    change_status: ChangeStatus, username: Annotated[str, Depends(get_current_username)]
-):
+def change_status(change_status: ChangeStatus):
     try:
         update_status(change_status.secret_password, change_status.status)
         club_id = get_el_id("Clubs", change_status.secret_password)
         coll_id = get_collection_id("Clubs", club_id)
-        add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
+        add_redis_collection_id("Clubs", coll_id, club_id=club_id)
         return {"status": 19}
     except Exception as e:
-        return {"status": -19}
+        return {"status": -19, "error_message": e}
 
 
 @router.get("/deleteclub/{club_id}")
-def delete_club(club_id: str, username: Annotated[str, Depends(get_current_username)]):
+def delete_club(club_id: str):
     try:
         del_id = delete_redis_id("Clubs", club_id)
         if del_id["status"] == 0:
             remove_club(club_id)
-            # Now remove this club from all of the users who are members of this club:
+            # Now remove this club from all the users who are members of this club:
             # users = get_collection_python("Users")
             # print(f"57 - {users}")
             # for u in users:
@@ -220,16 +218,10 @@ def delete_club(club_id: str, username: Annotated[str, Depends(get_current_usern
         return {"status": -20, "error_message": e}
 
 
-class VerifyClub(BaseModel):
-    secret_password: int
-
-
 @router.post("/verifyclub")
-def verify_club(
-    verify: VerifyClub, username: Annotated[str, Depends(get_current_username)]
-):
+def verify_club(verify: VerifyClub):
     try:
-        status = verify_club_model(verify.secret_password)
+        verify_club_model(verify.secret_password)
         return {"status": 21}
     except Exception as e:
         return {"status": -21, "error_message": e}
@@ -237,7 +229,6 @@ def verify_club(
 
 @router.post("/uploadclubimage/")
 async def upload_image(
-    username: Annotated[str, Depends(get_current_username)],
     file: UploadFile = File(...),
     old_file_name: Optional[str] = Form(None),
 ):
@@ -255,26 +246,18 @@ async def upload_image(
         if old_file_name:
             delete_club_image(old_file_name)
 
-        img_url = upload_club_image(file)
+        upload_club_image(file)
         return {"status": 22}
     except Exception as e:
-        return {"status": -22}
-
-
-class SetClubImg(BaseModel):
-    img_url: str
-    club_id: str
-    old_id: str
+        return {"status": -22, "error_message": e}
 
 
 @router.post("/setclubimg/")
-async def set_club_img(
-    upload: SetClubImg, username: Annotated[str, Depends(get_current_username)]
-):
+async def set_club_img(upload: SetClubImg):
     if upload.img_url != "Failed":
         set_club_image_doc(upload.club_id, upload.img_url, upload.old_id)
         coll_id = get_collection_id("Clubs", upload.club_id)
-        add_id = add_redis_collection_id("Clubs", coll_id, club_id=upload.club_id)
+        add_redis_collection_id("Clubs", coll_id, club_id=upload.club_id)
         return {"status": 23}
     else:
         return {"status": -23}
