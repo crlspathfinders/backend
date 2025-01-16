@@ -1,42 +1,22 @@
+import httpx
+import os
+import secrets
+from typing import Annotated
+
+from dotenv import load_dotenv
 from fastapi import (
-    FastAPI,
-    File,
-    UploadFile,
     Depends,
     HTTPException,
     status,
     APIRouter,
-    Form,
 )
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-import secrets, os, httpx
-from pydantic import BaseModel
-from typing import List, Optional, Annotated
-from models.clubmodel import (
-    make_club,
-    change_club,
-    update_status,
-    remove_club,
-    verify_club_model,
-    upload_club_image,
-    delete_club_image,
-    set_club_image_doc,
-)
-from models.model import (
-    get_collection_python,
-    get_el_id,
-    get_doc,
-    get_collection,
-    get_collection_id,
-)
-from models.redismodel import add_redis_collection_id, delete_redis_id
-from models.usermodel import join_leave_club
-from sendmail import send_mail
-from dotenv import load_dotenv
 
 load_dotenv()
 
 security = HTTPBasic()
+
+router = APIRouter(tags=["libraryinfo"])
 
 
 def get_current_username(
@@ -61,11 +41,8 @@ def get_current_username(
     return credentials.username
 
 
-router = APIRouter(tags=["libraryinfo"])
-
-
 @router.get("/getlibraryinfo/")
-async def get_library_info(username: Annotated[str, Depends(get_current_username)]):
+async def get_library_info():
     try:
         url = os.environ.get("LIBRARY_INFO_URL")
         async with httpx.AsyncClient() as client:
