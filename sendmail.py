@@ -12,11 +12,20 @@ load_dotenv()
 def send_mail(email_receiver, subject, body):
     email_sender = os.environ.get("EMAIL_SENDER")
     email_password = os.environ.get("EMAIL_PASSWORD")
+
+    if not email_sender or not email_password:
+        raise ValueError("Email sender credentials are not set in the environment variables.")
+
     if isinstance(email_receiver, list):
-        email_receiver = ', '.join(email_receiver)
+        primary_receiver = "crlspathfinders25@gmail.com"
+        bcc_receivers = email_receiver[0:]  # The rest are BCC
+    else:
+        raise ValueError("email_receiver must be a list with at least one email address.")
+
+    # Create the email
     em = EmailMessage()
     em['From'] = email_sender
-    em['To'] = email_receiver
+    em['To'] = primary_receiver  # Set the primary recipient in the 'To' field
     em['Subject'] = subject
     em.set_content(body)
 
@@ -26,7 +35,10 @@ def send_mail(email_receiver, subject, body):
     # Log in and send the email
     with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
         smtp.login(email_sender, email_password)
-        smtp.sendmail(email_sender, email_receiver.split(', '), em.as_string())
+
+        # Send email to primary and BCC recipients
+        smtp.sendmail(email_sender, [primary_receiver] + bcc_receivers, em.as_string())
+
 
 # Email sending with embedded HTML:
 def send_alt_mail(email_sender, email_password, email_receiver, subject, text, html):
