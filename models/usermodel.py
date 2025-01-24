@@ -4,7 +4,7 @@ from fastapi import HTTPException, Header, Depends
 from firebase_admin import auth
 from sendmail import send_mail
 from .redismodel import redis, get_redis_collection_id
-
+import json
 
 def make_user(email, is_leader, role, leading, joined_clubs):
     collection = "Users"
@@ -85,14 +85,13 @@ def get_current_user(authorization: str = Header(...)):
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-
 def get_user_from_email(email):
     collection = "Users"
     try:
         doc_id = get_el_id("Users", email)
         # user = db.collection(collection).document(doc_id).get().to_dict()
         user = get_redis_collection_id("Users", doc_id)
-        print(user)
+        # print(user)
         if user["status"] == 0:
             return user["target_val"]
     except Exception as e:
@@ -101,11 +100,12 @@ def get_user_from_email(email):
 
 def join_leave_club(join_leave, email, club):
     try:
-        user = get_user_from_email(email)
+        user = json.loads(get_user_from_email(email)[0])
+        print(f"user: {user}")
         user_id = get_el_id("Users", email)
-        print(user_id)
+        print(f"userid: {user_id}")
         clubs = user["joined_clubs"]
-        print(clubs)
+        print(f"clubs: {clubs}")
 
         if join_leave == "leave":
             clubs.remove(club)

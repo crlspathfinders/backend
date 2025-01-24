@@ -27,6 +27,7 @@ def make_club(
     # Need to pass in the id, etc for which collection to actually change.
     collection = "Clubs"
     standard_img = "https://firebasestorage.googleapis.com/v0/b/crlspathfinders-82886.appspot.com/o/club-images%2Felementor-placeholder-image.webp?alt=media&token=ca920f5c-bcfa-4739-b6bc-12fd70b00c9c"
+    print("in make club")
     try:
         db.collection(collection).add(
             {
@@ -46,16 +47,19 @@ def make_club(
                 # Need to add img_url
             }
         )
+        print("added to collection")
         # Make the president and vice-presidents have "Leader" role and add club to joined_clubs:
         try:
             change_user_role(president_email, "Leader")
             print(f"Changed pres role: {president_email}")
             club_id = get_el_id("Clubs", secret_password)
-            join_leave_club("join", president_email, club_id)
+            print(f"clubid: {club_id}")
+            print(join_leave_club("join", president_email, club_id))
             print(f"pres joined {club_id}")
             members = get_members(club_id)
+            print(f"members before: {members}")
             members.append(president_email)
-            print("added pres to club members")
+            print(f"members after: {members}")
             change_is_leader(president_email, True)
             print(f"changed {president_email} to is leader")
             for v in vice_presidents_emails:
@@ -71,7 +75,7 @@ def make_club(
                     print(f"pres joined {club_id}")
                     members.append(v)
                     print("added vp to club members")
-            manage_members(secret_password, members)
+            print(manage_members(secret_password, members))
         except Exception as e:
             print(f"Failed to change pres / vp role: {e}")
         return {"status": "Success"}

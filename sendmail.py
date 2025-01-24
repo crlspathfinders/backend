@@ -13,14 +13,16 @@ def send_mail(email_receiver, subject, body):
     email_sender = os.environ.get("EMAIL_SENDER")
     email_password = os.environ.get("EMAIL_PASSWORD")
 
+    bcc_receivers = []
+
     if not email_sender or not email_password:
         raise ValueError("Email sender credentials are not set in the environment variables.")
 
     if isinstance(email_receiver, list):
-        primary_receiver = "crlspathfinders25@gmail.com"
+        if "crlspathfinders25@gmail.com" in email_receiver: primary_receiver = "crlspathfinders25@gmail.com" 
+        else: primary_receiver = email_receiver[0]
         bcc_receivers = email_receiver[0:]  # The rest are BCC
-    else:
-        raise ValueError("email_receiver must be a list with at least one email address.")
+    else: primary_receiver = email_receiver
 
     # Create the email
     em = EmailMessage()
@@ -37,7 +39,8 @@ def send_mail(email_receiver, subject, body):
         smtp.login(email_sender, email_password)
 
         # Send email to primary and BCC recipients
-        smtp.sendmail(email_sender, [primary_receiver] + bcc_receivers, em.as_string())
+        if len(bcc_receivers) > 0: smtp.sendmail(email_sender, [primary_receiver] + bcc_receivers, em.as_string())
+        else: smtp.sendmail(email_sender, primary_receiver, em.as_string())
 
 
 # Email sending with embedded HTML:

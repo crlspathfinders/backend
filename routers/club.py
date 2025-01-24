@@ -48,7 +48,7 @@ class Club(BaseModel):
     club_description: str
     club_name: str
     president_email: str
-    room_number: int
+    room_number: str
     google_classroom_link: str
     secret_password: int
     start_time: str
@@ -98,6 +98,7 @@ async def create_info(club: Club):
     try:
         # Client side makes sure that the president email and advisor emails are correct, etc.
         # Make club will make create it as Pending -> will wait for advisor verification to Approve it.
+        print("starting make club")
         make_club(
             club.advisor_email,
             club.club_days,
@@ -111,11 +112,14 @@ async def create_info(club: Club):
             club.status,
             club.vice_president_emails,
         )
+        print("done make club")
 
         club_id = get_el_id("Clubs", club.secret_password)
+        print(f"clubid: {club_id}")
         coll_id = get_collection_id("Clubs", club_id)
-        add_redis_collection_id("Clubs", coll_id, club_id=club_id)
-        add_redis_collection("Users")
+        print("collid: {coll_id}")
+        print(add_redis_collection_id("Clubs", coll_id, club_id=club_id))
+        print(add_redis_collection("Users"))
 
         # Now have to send email to advisor with password:
         receiver = club.advisor_email
@@ -130,7 +134,9 @@ Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
 """
         try:
             send_mail(receiver, subject, body)
+            print("sent first mail")
         except Exception as e:
+            print(f"Failed to send mail: {e}")
             return {"status": -16, "error_message": e}
 
         # Now send email to the club president:
@@ -148,11 +154,36 @@ Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
 """
         try:
             send_mail(receiver, subject, body)
-            # print("Sent mail")
+            print("sent second mail")
         except Exception as e:
-            # print(f"Failed to send mail: {e}")
+            print(f"Failed to send mail: {e}")
             return {"status": -16, "error_message": e}
-        return {"status": 17}
+        
+        receiver = "crlspathfinders25@gmail.com"
+        subject = f"{club.club_name} | Club Registration"
+        body = f"""Club registration confifrmation for {club.club_name}
+
+Advisor: {club.advisor_email}
+Days: {club.club_days}
+Description: {club.club_description}
+Name: {club.club_name}
+President: {club.president_email}
+Room: {club.room_number}
+Google Classroom: {club.google_classroom_link}
+Password: {club.secret_password}
+Start Time: {club.start_time}
+Status: {club.status}
+Vice Presidents: {club.vice_president_emails}
+"""
+        
+        try:
+            send_mail(receiver, subject, body)
+            print("sent second mail")
+        except Exception as e:
+            print(f"Failed to send mail: {e}")
+            return {"status": -16, "error_message": e}
+
+        return {"status": 0}
     except Exception as e:
         return {"status": -17, "error_message": e}
 
@@ -222,7 +253,7 @@ def delete_club(club_id: str):
 def verify_club(verify: VerifyClub):
     try:
         verify_club_model(verify.secret_password)
-        return {"status": 21}
+        return {"status": 0}
     except Exception as e:
         return {"status": -21, "error_message": e}
 
