@@ -6,6 +6,7 @@ from sendmail import send_mail
 from .redismodel import redis, get_redis_collection_id
 import json
 
+
 def make_user(email, is_leader, role, leading, joined_clubs):
     collection = "Users"
     try:
@@ -84,6 +85,7 @@ def get_current_user(authorization: str = Header(...)):
         return decoded_token
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+
 
 def get_user_from_email(email):
     collection = "Users"

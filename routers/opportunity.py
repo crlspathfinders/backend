@@ -13,7 +13,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 
 from models.model import get_el_id, get_collection_id
-from models.peermentormodel import (
+from models.opportunitymodel import (
     create_link,
     remove_link,
     update_link,
@@ -26,7 +26,7 @@ from models.redismodel import add_redis_collection_id, delete_redis_id
 load_dotenv()
 
 security = HTTPBasic()
-router = APIRouter(tags=["peermentor"])
+router = APIRouter(tags=["opportunities"])
 
 
 class Link(BaseModel):
@@ -84,9 +84,9 @@ async def add_link(link: Link):
         create_link(
             link.link_name, link.link_url, link.categories, link.bio, link.deadline
         )
-        pml_id = get_el_id("PeerMentorLinks", link.link_name)
-        coll_id = get_collection_id("PeerMentorLinks", pml_id)
-        add_id = add_redis_collection_id("PeerMentorLinks", coll_id, pml_id=pml_id)
+        opp_id = get_el_id("Opportunities", link.link_name)
+        coll_id = get_collection_id("Opportunities", opp_id)
+        add_id = add_redis_collection_id("Opportunities", coll_id, opp_id=opp_id)
         if add_id["status"] == 0:
             return {"status": 0}
         return {"status": -10.1}
@@ -97,8 +97,8 @@ async def add_link(link: Link):
 @router.get("/deletelink/{link_name}")
 async def delete_link(link_name):
     try:
-        pml_id = get_el_id("PeerMentorLinks", link_name)
-        del_id = delete_redis_id("PeerMentorLinks", pml_id)
+        opp_id = get_el_id("Opportunities", link_name)
+        del_id = delete_redis_id("Opportunities", opp_id)
         if del_id["status"] == 0:
             remove_link(link_name)
             return {"status": 0}
@@ -118,9 +118,9 @@ async def edit_link(edit_link: EditLink):
             edit_link.bio,
             edit_link.deadline,
         )
-        pml_id = get_el_id("PeerMentorLinks", edit_link.new_name)
-        coll_id = get_collection_id("PeerMentorLinks", pml_id)
-        add_id = add_redis_collection_id("PeerMentorLinks", coll_id, pml_id=pml_id)
+        opp_id = get_el_id("Opportunities", edit_link.new_name)
+        coll_id = get_collection_id("Opportunities", opp_id)
+        add_id = add_redis_collection_id("Opportunities", coll_id, opp_id=opp_id)
         if add_id["status"] == 0:
             return {"status": 0}
         return {"status": -12.1}
@@ -132,9 +132,9 @@ async def edit_link(edit_link: EditLink):
 def add_category(category: NewCategory):
     try:
         create_category(category.new_cat)
-        pml_id = "PeerMentor"
-        coll_id = get_collection_id("Demographics", pml_id)
-        add_id = add_redis_collection_id("Demographics", coll_id, pml_id=pml_id)
+        opp_id = "Opportunities"
+        coll_id = get_collection_id("Demographics", opp_id)
+        add_id = add_redis_collection_id("Demographics", coll_id, opp_id=opp_id)
         if add_id["status"] == 0:
             return {"status": 0}
         return {"status": -13.1}
@@ -147,9 +147,9 @@ def add_category(category: NewCategory):
 def remove_category(category: NewCategory):
     try:
         delete_category(category.new_cat)
-        pml_id = "PeerMentor"
-        coll_id = get_collection_id("Demographics", pml_id)
-        add_id = add_redis_collection_id("Demographics", coll_id, pml_id=pml_id)
+        opp_id = "Opportunities"
+        coll_id = get_collection_id("Demographics", opp_id)
+        add_id = add_redis_collection_id("Demographics", coll_id, opp_id=opp_id)
         if add_id["status"] == 0:
             return {"status": 0}
         return {"status": -14.1}
@@ -161,9 +161,9 @@ def remove_category(category: NewCategory):
 def edit_category(edit_cat: EditCategory):
     try:
         update_category(edit_cat.old_cat_name, edit_cat.new_cat_name)
-        pml_id = "PeerMentor"
-        coll_id = get_collection_id("Demographics", pml_id)
-        add_id = add_redis_collection_id("Demographics", coll_id, pml_id=pml_id)
+        opp_id = "Opportunities"
+        coll_id = get_collection_id("Demographics", opp_id)
+        add_id = add_redis_collection_id("Demographics", coll_id, opp_id=opp_id)
         if add_id["status"] == 0:
             return {"status": 0}
         return {"status": -15.1}
