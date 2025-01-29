@@ -1,18 +1,31 @@
-from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status, APIRouter
+import os
+import secrets
+from typing import Annotated
+
+from dotenv import load_dotenv
+from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-import secrets, os
 from pydantic import BaseModel
-from typing import List, Optional, Annotated
+
 from models.allinfomodel import (
     update_all_info_collection,
     add_document_to_all_info_collection,
 )
 from models.redismodel import add_redis_collection
-from dotenv import load_dotenv
 
 load_dotenv()
 
 security = HTTPBasic()
+router = APIRouter(tags=["allinfo"])
+
+
+class UpdateAllInfo(BaseModel):
+    doc: str
+    vals: dict
+
+
+class AddDocument(BaseModel):
+    doc: dict
 
 
 def get_current_username(
@@ -37,19 +50,10 @@ def get_current_username(
     return credentials.username
 
 
-router = APIRouter(tags=["allinfo"])
-
-
-class UpdateAllInfo(BaseModel):
-    doc: str
-    vals: dict
-
-
 @router.post("/update/")
 def update_all_info(
     update: UpdateAllInfo, username: Annotated[str, Depends(get_current_username)]
 ):
-    print(update)
     result = update_all_info_collection(update.doc, update.vals)
     add_redis_collection("AllInfo")
     if result["status"] == 0:
@@ -58,14 +62,8 @@ def update_all_info(
     return {"status": -1, "error_message": result["error_message"]}
 
 
-class AddDocument(BaseModel):
-    doc: dict
-
-
 @router.post("/adddocument/")
-def add_document(
-    doc: AddDocument, username: Annotated[str, Depends(get_current_username)]
-):
+def add_document(doc: AddDocument):
     result = add_document_to_all_info_collection(doc.doc)
     if result["status"] == 0:
         add_redis_collection("AllInfo")

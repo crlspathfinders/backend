@@ -158,7 +158,7 @@ Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
         except Exception as e:
             print(f"Failed to send mail: {e}")
             return {"status": -16, "error_message": e}
-        
+
         receiver = "crlspathfinders25@gmail.com"
         subject = f"{club.club_name} | Club Registration"
         body = f"""Club registration confifrmation for {club.club_name}
@@ -175,7 +175,7 @@ Start Time: {club.start_time}
 Status: {club.status}
 Vice Presidents: {club.vice_president_emails}
 """
-        
+
         try:
             send_mail(receiver, subject, body)
             print("sent second mail")

@@ -1,18 +1,22 @@
+import json
+import os
+import secrets
+from typing import Annotated, List
+
+from dotenv import load_dotenv
 from fastapi import (
-    FastAPI,
-    File,
-    UploadFile,
     Depends,
     HTTPException,
     status,
     APIRouter,
-    Form,
     Request,
 )
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-import secrets, os
-from dotenv import load_dotenv
 from pydantic import BaseModel
+
+from models.clubmodel import get_members, manage_members, get_secret_pass
+from models.model import get_el_id, get_collection_python, get_collection_id
+from models.redismodel import add_redis_collection_id, delete_redis_id
 from models.usermodel import (
     make_user,
     change_user,
@@ -27,15 +31,34 @@ from models.usermodel import (
     change_mentor_eligible,
     get_mentees,
 )
-from typing import Annotated, List
-from models.model import get_el_id, get_doc, get_collection_python, get_collection_id
-from models.clubmodel import get_members, manage_members, get_secret_pass
-from models.redismodel import add_redis_collection_id, delete_redis_id
-import json
 
 load_dotenv()
 
 security = HTTPBasic()
+router = APIRouter(tags=["user"])
+
+
+class User(BaseModel):
+    email: str
+    is_leader: bool
+    role: str
+    leading: List[str]
+    joined_clubs: List[str]
+
+
+class Token(BaseModel):
+    token: str
+
+
+class ChangeRole(BaseModel):
+    email: str
+    new_role: str
+
+
+class ToggleLeaderMentor(BaseModel):
+    email: str
+    leader_mentor: str
+    toggle: bool
 
 
 def get_current_username(
@@ -60,43 +83,24 @@ def get_current_username(
     return credentials.username
 
 
-router = APIRouter(tags=["user"])
-
-
-class User(BaseModel):
-    email: str
-    is_leader: bool
-    role: str
-    leading: List[str]
-    joined_clubs: List[str]
-
-
 @router.post("/createuser/")
-async def create_user(
-    user: User, username: Annotated[str, Depends(get_current_username)]
-):
+async def create_user(user: User):
     use = make_user(
         user.email, user.is_leader, user.role, user.leading, user.joined_clubs
     )
     user_id = get_el_id("Users", user.email)
     coll_id = get_collection_id("Users", user_id)
-    add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+    add_redis_collection_id("Users", coll_id, user_id=user_id)
     return use
 
 
 @router.post("/updateuser/")
-async def update_user(
-    user: User, username: Annotated[str, Depends(get_current_username)]
-):
-    chan = change_user(user.email, user.is_leader, user.role)
+async def update_user(user: User):
+    change = change_user(user.email, user.is_leader, user.role)
     user_id = get_el_id("Users", user.email)
     coll_id = get_collection_id("Users", user_id)
-    add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
-    return chan
-
-
-class Token(BaseModel):
-    token: str
+    add_redis_collection_id("Users", coll_id, user_id=user_id)
+    return change
 
 
 @router.post("/verify-token")
@@ -106,9 +110,7 @@ def verify_token_route(token: Token):
 
 
 @router.get("/protected")
-def protected_route(
-    request: Request, username: Annotated[str, Depends(get_current_username)]
-):
+def protected_route(request: Request):
     auth_header = request.headers.get("Authorization")
     if not auth_header:
         raise HTTPException(status_code=401, detail="Missing authorization header")
@@ -120,9 +122,7 @@ def protected_route(
 
 # New endpoint to handle additional user creation logic
 @router.post("/create-user")
-def create_user_route(
-    token: Token, username: Annotated[str, Depends(get_current_username)]
-):
+def create_user_route(token: Token):
     # Creates / adds the user into the Google Firebase Authentication:
     decoded_token = verify_token(token.token)
     # Creates / adds the user into the Google Firebase Firestore Database:
@@ -132,14 +132,14 @@ def create_user_route(
 
 
 @router.post("/make-user")
-def make_new_user(user: User, username: Annotated[str, Depends(get_current_username)]):
+def make_new_user(user: User):
     try:
         make_user(
             user.email, user.is_leader, user.role, user.leading, user.joined_clubs
         )
         user_id = get_el_id("Users", user.email)
         coll_id = get_collection_id("Users", user_id)
-        add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+        add_redis_collection_id("Users", coll_id, user_id=user_id)
         return {"status": "Successfully made user"}
     except Exception as e:
         return {"status": f"Failed to make user: {e}"}
@@ -154,20 +154,17 @@ def get_user_info(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/getuserdocdata/{email}")
-def get_user_doc_data(
-    email: str, username: Annotated[str, Depends(get_current_username)]
-):
+def get_user_doc_data(email: str):
     print("starting getuserdocdata")
     try:
         return get_user_from_email(email)
     except Exception as e:
-        return {"status": f"Faield to getuserdocfromdata: {e}"}
+        return {"status": f"Failed to getuserdocfromdata: {e}"}
 
 
+# noinspection DuplicatedCode
 @router.get("/toggleclub/{email}/{club_id}")
-def toggle_club(
-    email: str, club_id: str, username: Annotated[str, Depends(get_current_username)]
-):
+def toggle_club(email: str, club_id: str):
     user = get_user_from_email(email)
     # print("---------------------------")
     # print(user)
@@ -191,9 +188,9 @@ def toggle_club(
             manage_members(secret_password, members)
             user_id = get_el_id("Users", email)
             coll_id = get_collection_id("Users", user_id)
-            add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+            add_redis_collection_id("Users", coll_id, user_id=user_id)
             coll_id = get_collection_id("Clubs", club_id)
-            add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
+            add_redis_collection_id("Clubs", coll_id, club_id=club_id)
             return {"status": "Successfully left club"}
         except Exception as e:
             return {"status": f"Failed to leave club: {e}"}
@@ -204,28 +201,21 @@ def toggle_club(
             manage_members(secret_password, members)
             user_id = get_el_id("Users", email)
             coll_id = get_collection_id("Users", user_id)
-            add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+            add_redis_collection_id("Users", coll_id, user_id=user_id)
             coll_id = get_collection_id("Clubs", club_id)
-            add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
+            add_redis_collection_id("Clubs", coll_id, club_id=club_id)
             return {"status": "Successfully joined club"}
         except Exception as e:
             return {"status": f"Failed to join club: {e}"}
 
 
-class ChangeRole(BaseModel):
-    email: str
-    new_role: str
-
-
 @router.post("/changerole")
-def change_role(
-    change: ChangeRole, username: Annotated[str, Depends(get_current_username)]
-):
+def change_role(change: ChangeRole):
     try:
         change_user_role(change.email, change.new_role)
         user_id = get_el_id("Users", change.email)
         coll_id = get_collection_id("Users", user_id)
-        add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+        add_redis_collection_id("Users", coll_id, user_id=user_id)
         return {"status": "Successfully changed user role"}
     except Exception as e:
         print(f"Failed to change role: {e}")
@@ -233,7 +223,7 @@ def change_role(
 
 
 @router.get("/deleteuser/{email}")
-def remove_user(email: str, username: Annotated[str, Depends(get_current_username)]):
+def remove_user(email: str):
     try:
         user_id = get_el_id("Users", email)
         del_id = delete_redis_id("Users", user_id)
@@ -246,22 +236,14 @@ def remove_user(email: str, username: Annotated[str, Depends(get_current_usernam
         return {"status": f"Failed to delete user: {e}"}
 
 
-class ToggleLeaderMentor(BaseModel):
-    email: str
-    leader_mentor: str
-    toggle: bool
-
-
 @router.post("/toggleleadermentor")
-def toggle_leader_mentor(
-    toggle: ToggleLeaderMentor, username: Annotated[str, Depends(get_current_username)]
-):
+def toggle_leader_mentor(toggle: ToggleLeaderMentor):
     if toggle.leader_mentor == "Leader":
         try:
             change_is_leader(toggle.email, toggle.toggle)
             user_id = get_el_id("Users", toggle.email)
             coll_id = get_collection_id("Users", user_id)
-            add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+            add_redis_collection_id("Users", coll_id, user_id=user_id)
             print(f"Changed {toggle.email} to {toggle.toggle}")
             return {"status": "Successfully toggled leader"}
         except Exception as e:
@@ -272,7 +254,7 @@ def toggle_leader_mentor(
             change_is_mentor(toggle.email, toggle.toggle)
             user_id = get_el_id("Users", toggle.email)
             coll_id = get_collection_id("Users", user_id)
-            add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+            add_redis_collection_id("Users", coll_id, user_id=user_id)
             print(f"Changed {toggle.email} to {toggle.toggle}")
             return {"status": "Successfully toggled mentor"}
         except Exception as e:
@@ -283,7 +265,7 @@ def toggle_leader_mentor(
             change_mentor_eligible(toggle.email, toggle.toggle)
             user_id = get_el_id("Users", toggle.email)
             coll_id = get_collection_id("Users", user_id)
-            add_id = add_redis_collection_id("Users", coll_id, user_id=user_id)
+            add_redis_collection_id("Users", coll_id, user_id=user_id)
             print(f"Changed {toggle.email} to {toggle.toggle}")
             return {"status": "Successfully toggled mentor eligible"}
         except Exception as e:
@@ -294,7 +276,7 @@ def toggle_leader_mentor(
 
 
 @router.get("/getmentees")
-def read_mentees(username: Annotated[str, Depends(get_current_username)]):
+def read_mentees():
     pairings = []
     mentees = get_mentees()
     mentors = get_collection_python("Mentors")
@@ -309,7 +291,6 @@ def read_mentees(username: Annotated[str, Depends(get_current_username)]):
                 for ment in mentees:
                     curr_mentee = ment
                     mentee_logs = curr_mentee["mentee_logs"]
-                    entry = None
                     for l in mentee_logs:
                         if catalog_id == l["id"]:
                             entry = {

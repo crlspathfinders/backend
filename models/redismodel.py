@@ -137,15 +137,15 @@ def add_redis_collection(collection):
 
 
 def add_redis_collection_id(
-    collection, data, club_id="", mentor_id="", pml_id="", user_id=""
+    collection, data, club_id="", mentor_id="", opp_id="", user_id=""
 ):
     try:
         if len(club_id) > 1:
             redis.hset(collection, club_id, data)
         elif len(mentor_id) > 1:
             redis.hset(collection, mentor_id, data)
-        elif len(pml_id) > 1:
-            redis.hset(collection, pml_id, data)
+        elif len(opp_id) > 1:
+            redis.hset(collection, opp_id, data)
         elif len(user_id) > 1:
             redis.hset(collection, user_id, data)
         else:
