@@ -66,6 +66,7 @@ router = APIRouter(tags=["libraryinfo"])
 
 @router.get("/getlibraryinfo/")
 async def get_library_info(username: Annotated[str, Depends(get_current_username)]):
+# async def get_library_info():
     try:
         url = os.environ.get("LIBRARY_INFO_URL")
         async with httpx.AsyncClient() as client:

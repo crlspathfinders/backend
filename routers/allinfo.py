@@ -49,6 +49,7 @@ class UpdateAllInfo(BaseModel):
 def update_all_info(
     update: UpdateAllInfo, username: Annotated[str, Depends(get_current_username)]
 ):
+    print(update)
     result = update_all_info_collection(update.doc, update.vals)
     add_redis_collection("AllInfo")
     if result["status"] == 0:
