@@ -53,7 +53,7 @@ def get_el_id(collection, target):
         for r in results:
             if r["email"] == target:
                 return r["id"]
-    elif collection == "PeerMentorLinks":
+    elif collection == "Opportunities":
         collection = db.collection(collection)
         docs = collection.get()
         results = []
