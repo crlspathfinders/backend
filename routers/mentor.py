@@ -190,8 +190,8 @@ async def upload_image(
         if old_file_name:
             delete_mentor_image(old_file_name)
 
-        upload_mentor_image(file)
-        return {"status": 0}
+        img_url = upload_mentor_image(file)
+        return {"status": 0, "img_url": img_url}
     except Exception as e:
         return {"status": -5, "error_message": e}
 
