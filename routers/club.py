@@ -277,14 +277,14 @@ async def upload_image(
         if old_file_name:
             delete_club_image(old_file_name)
 
-        upload_club_image(file)
-        return {"status": 22}
+        img_url = upload_club_image(file)
+        return {"status": 0, "img_url": img_url}
     except Exception as e:
         return {"status": -22, "error_message": e}
 
 
 @router.post("/setclubimg/")
-async def set_club_img(upload: SetClubImg):
+async def set_club_img(upload: SetClubImg, username: Annotated[str, Depends(get_current_username)]):
     if upload.img_url != "Failed":
         set_club_image_doc(upload.club_id, upload.img_url, upload.old_id)
         coll_id = get_collection_id("Clubs", upload.club_id)
