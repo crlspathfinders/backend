@@ -1,17 +1,17 @@
-from .model import db, get_el_id, get_doc, storage, get_collection_id
-from .usermodel import change_user_role, change_is_mentor
-from .redismodel import add_redis_collection_id
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from uuid import uuid4
-from io import BytesIO
-import uuid
 from urllib.parse import urlparse
+from uuid import uuid4
+
+from fastapi import File, UploadFile
+
+from .model import db, get_el_id, get_doc, storage, get_collection_id
+from .redismodel import add_redis_collection_id
+from .usermodel import change_user_role, change_is_mentor
 
 
 def make_mentor(
     firstname, lastname, bio, email, race, religion, gender, languages, academics
 ):
-    # Need to pass in the id, etc for which collection to actually change.
+    # Need to pass in the id, etc. for which collection to actually change.
     collection = "Mentors"
     print("make mentor begin")
     try:
@@ -83,7 +83,7 @@ def remove_mentor(email):
         return {"status": f"Failed to delete mentor: {e}"}
 
 
-# Make function that deletes old mentor image (look on google or chatgpt how to delte firebase storage images from a url)
+# Make function that deletes old mentor image (look on Google or chatgpt how to delete firebase storage images from a url)
 
 
 def upload_mentor_image(file: UploadFile = File(...)):
@@ -157,7 +157,7 @@ def show_or_hide_mentor(mentor_email):
         db.collection("Mentors").document(doc_id).update({"show": toggle})
         mentor_id = get_el_id("Mentors", mentor.email)
         coll_id = get_collection_id("Mentors", mentor_id)
-        add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
+        add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
     except Exception as e:
         print(f"Failed to show or hide mentor: {e}")
         return {"status": f"Failed to show or hide mentor: {e}"}

@@ -152,7 +152,7 @@ Thank you, and if there are any problems, send me an email @25ranjaria@cpsd.us
         except Exception as e:
             # print(f"Failed to send mail: {e}")
             return {"status": -16, "error_message": e}
-        return {"status": 17}
+        return {"status": 0}
     except Exception as e:
         return {"status": -17, "error_message": e}
 
@@ -177,7 +177,7 @@ async def update_club(club: Club):
         coll_id = get_collection_id("Clubs", club_id)
         add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
         if add_id["status"] == 0:
-            return {"status": 18}
+            return {"status": 0}
         return {"status": -18.1}
     except Exception as e:
         return {"status": -18, "error_message": e}
@@ -190,7 +190,7 @@ def change_status(change_status: ChangeStatus):
         club_id = get_el_id("Clubs", change_status.secret_password)
         coll_id = get_collection_id("Clubs", club_id)
         add_redis_collection_id("Clubs", coll_id, club_id=club_id)
-        return {"status": 19}
+        return {"status": 0}
     except Exception as e:
         return {"status": -19, "error_message": e}
 
@@ -211,7 +211,7 @@ def delete_club(club_id: str):
             #             join_leave_club("leave", u["email"], club_id)
             #         else:
             #             print("61 - Not found")
-            return {"status": 20}
+            return {"status": 0}
         return {"status": -20.1}
 
     except Exception as e:
@@ -222,7 +222,7 @@ def delete_club(club_id: str):
 def verify_club(verify: VerifyClub):
     try:
         verify_club_model(verify.secret_password)
-        return {"status": 21}
+        return {"status": 0}
     except Exception as e:
         return {"status": -21, "error_message": e}
 
@@ -247,7 +247,7 @@ async def upload_image(
             delete_club_image(old_file_name)
 
         upload_club_image(file)
-        return {"status": 22}
+        return {"status": 0}
     except Exception as e:
         return {"status": -22, "error_message": e}
 
@@ -258,6 +258,6 @@ async def set_club_img(upload: SetClubImg):
         set_club_image_doc(upload.club_id, upload.img_url, upload.old_id)
         coll_id = get_collection_id("Clubs", upload.club_id)
         add_redis_collection_id("Clubs", coll_id, club_id=upload.club_id)
-        return {"status": 23}
+        return {"status": 0}
     else:
         return {"status": -23}

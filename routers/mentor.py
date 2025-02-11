@@ -121,7 +121,7 @@ async def create_mentor(mentor: Mentor):
         add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
         print(add_id)
         if add_id["status"] == 0:
-            return {"status": 2}
+            return {"status": 0}
         return {"status": -2.1}
     except Exception as e:
         return {"status": -2, "error_message": e}
@@ -145,7 +145,7 @@ async def update_mentor(mentor: Mentor):
         coll_id = get_collection_id("Mentors", mentor_id)
         add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
         if add_id["status"] == 0:
-            return {"status": 3}
+            return {"status": 0}
     except Exception as e:
         return {"status": -3, "error_message": e}
 
@@ -157,7 +157,7 @@ async def delete_mentor(email: str):
         del_id = delete_redis_id("Mentors", mentor_id)
         if del_id["status"] == 0:
             remove_mentor(email)
-            return {"status": 4}
+            return {"status": 0}
     except Exception as e:
         return {"status": -4, "error_message": e}
 
@@ -191,7 +191,7 @@ async def upload_image(
             delete_mentor_image(old_file_name)
 
         upload_mentor_image(file)
-        return {"status": 5}
+        return {"status": 0}
     except Exception as e:
         return {"status": -5, "error_message": e}
 
@@ -204,7 +204,7 @@ async def set_mentor_img(upload: SetMentorImg):
         coll_id = get_collection_id("Mentors", mentor_id)
         add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
 
-        return {"status": 6}
+        return {"status": 0}
     else:
         return {"status": -6}
 
@@ -220,7 +220,7 @@ Pitch:
     """
     try:
         send_mail(receiver, subject, body)
-        return {"status": 7}
+        return {"status": 0}
     except Exception as e:
         return {"status": -7, "error_message": e}
 
@@ -317,7 +317,7 @@ Abel Asefaw '25
 
         send_mail(receiver, subject, body)
         # print("sent mentee email")
-        return {"status": 8}
+        return {"status": 0}
     except Exception as e:
         # print(f"Failed to send logging email: {e}")
         return {"status": -8, "error_message": e}
@@ -414,5 +414,5 @@ Abel Asefaw '25
         add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
         # print(add_id)
 
-        return {"status": 9}
+        return {"status": 0}
     return {"status": -9.3}

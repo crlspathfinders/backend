@@ -1,15 +1,9 @@
 from .model import (
     db,
     get_el_id,
-    get_doc,
-    storage,
     get_collection_id,
     get_collection_python,
 )
-from .usermodel import change_user_role, change_is_mentor
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from uuid import uuid4
-from io import BytesIO
 
 
 def create_link(link_name, link_url, categories, bio, deadline):
@@ -107,7 +101,7 @@ def delete_category(cat_name):
     try:
         db.collection(collection).document(doc_id).update({"categories": all_cats})
         print("Successfully deleted category")
-        # When deleting category, also have to remove this category from all of the peer mentor links who have this category listed:
+        # When deleting category, also have to remove this category from all the peer mentor links who have this category listed:
         pml = get_collection_python("PeerMentorLinks")
         for p in pml:
             if cat_name in p["categories"]:

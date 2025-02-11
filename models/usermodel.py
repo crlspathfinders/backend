@@ -1,9 +1,10 @@
+from fastapi import HTTPException, Header
+from firebase_admin import auth
+
+from sendmail import send_mail
 from .model import db, get_el_id, get_doc, get_collection_python, get_collection_id
 from .redismodel import add_redis_collection_id
-from fastapi import HTTPException, Header, Depends
-from firebase_admin import auth
-from sendmail import send_mail
-from .redismodel import redis, get_redis_collection_id
+from .redismodel import get_redis_collection_id
 
 
 def make_user(email, is_leader, role, leading, joined_clubs):

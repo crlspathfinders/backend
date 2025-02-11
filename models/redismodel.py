@@ -158,9 +158,9 @@ def add_redis_collection_id(
         }
 
 
-def delete_redis_data(collection, id):
+def delete_redis_data(collection, ident):
     try:
-        delete = redis.hdel(collection, id)
+        delete = redis.hdel(collection, ident)
         if delete == 1:
             return {"status": 0}
         if delete == 0:
