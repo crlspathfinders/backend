@@ -89,8 +89,8 @@ def delete_category(cat_name):
         db.collection(collection).document(doc_id).update({"categories": all_cats})
         # successfully deleted category by here When deleting category, also have to remove this category from all
         # the opportunity links who have this category listed:
-        opportunitiy = get_collection_python("Opportunities")
-        for o in opportunitiy:
+        opportunity = get_collection_python("Opportunities")
+        for o in opportunity:
             if cat_name in o["categories"]:
                 curr_cats = o["categories"]
                 curr_cats.remove(cat_name)

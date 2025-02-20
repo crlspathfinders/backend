@@ -220,7 +220,7 @@ Pitch:
     """
     try:
         send_mail(receiver, subject, body)
-        return {"status": 7}
+        return {"status": 0}
     except Exception as e:
         return {"status": -7, "error_message": e}
 

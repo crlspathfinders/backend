@@ -2,6 +2,8 @@ import firebase_admin, json, os
 from firebase_admin import credentials, storage, auth
 from firebase_admin import firestore
 from dotenv import load_dotenv
+from firebase_admin import credentials
+from firebase_admin import firestore
 
 load_dotenv()
 
@@ -66,9 +68,9 @@ def get_el_id(collection, target):
                 return r["id"]
 
 
-def get_collection_id(collection, id):
+def get_collection_id(collection, ident):
     try:
-        result = db.collection(collection).document(id).get().to_dict()
+        result = db.collection(collection).document(ident).get().to_dict()
         return result
     except Exception as e:
         return {"status": f"Failed: {str(e)}"}
@@ -102,9 +104,9 @@ def get_collection_python(collection):
     return results
 
 
-def get_sub_collection(collection, id, subcollection):
+def get_sub_collection(collection, ident, subcollection):
     try:
-        docs = db.collection(collection).document(id).collection(subcollection).get()
+        docs = db.collection(collection).document(ident).collection(subcollection).get()
         results = []
         for doc in docs:
             doc_dict = doc.to_dict()
@@ -120,9 +122,9 @@ def get_sub_collection(collection, id, subcollection):
         return {"status": f"Failed: {str(e)}"}
 
 
-def remove_id(collection, id):
+def remove_id(collection, ident):
     try:
-        db.collection(collection).document(id).delete()
+        db.collection(collection).document(ident).delete()
         return {"status": "Success"}
     except Exception as e:
         return {"status": f"Failed: {str(e)}"}

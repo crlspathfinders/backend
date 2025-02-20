@@ -208,7 +208,7 @@ async def update_club(club: Club):
         coll_id = get_collection_id("Clubs", club_id)
         add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
         if add_id["status"] == 0:
-            return {"status": 18}
+            return {"status": 0}
         return {"status": -18.1}
     except Exception as e:
         return {"status": -18, "error_message": e}
@@ -221,7 +221,7 @@ def change_status(change_status: ChangeStatus):
         club_id = get_el_id("Clubs", change_status.secret_password)
         coll_id = get_collection_id("Clubs", club_id)
         add_redis_collection_id("Clubs", coll_id, club_id=club_id)
-        return {"status": 19}
+        return {"status": 0}
     except Exception as e:
         return {"status": -19, "error_message": e}
 
@@ -242,7 +242,7 @@ def delete_club(club_id: str):
             #             join_leave_club("leave", u["email"], club_id)
             #         else:
             #             print("61 - Not found")
-            return {"status": 20}
+            return {"status": 0}
         return {"status": -20.1}
 
     except Exception as e:
@@ -289,6 +289,6 @@ async def set_club_img(upload: SetClubImg, username: Annotated[str, Depends(get_
         set_club_image_doc(upload.club_id, upload.img_url, upload.old_id)
         coll_id = get_collection_id("Clubs", upload.club_id)
         add_redis_collection_id("Clubs", coll_id, club_id=upload.club_id)
-        return {"status": 23}
+        return {"status": 0}
     else:
         return {"status": -23}

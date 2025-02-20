@@ -1,10 +1,10 @@
-from .model import db, get_el_id, get_doc, storage, get_collection_id
-from .usermodel import change_user_role, join_leave_club, change_is_leader
-from .mentormodel import extract_relative_path
-from .redismodel import add_redis_collection_id, add_redis_collection
-from fastapi import FastAPI, File, UploadFile, HTTPException
 from uuid import uuid4
-from io import BytesIO
+
+from fastapi import File, UploadFile
+
+from .model import db, get_el_id, get_doc, storage, get_collection_id
+from .redismodel import add_redis_collection_id, add_redis_collection
+from .usermodel import change_user_role, join_leave_club, change_is_leader
 
 
 def get_secret_pass(club_id):
@@ -24,7 +24,7 @@ def make_club(
     status,
     vice_presidents_emails,
 ):
-    # Need to pass in the id, etc for which collection to actually change.
+    # Need to pass in the id, etc. for which collection to actually change.
     collection = "Clubs"
     standard_img = "https://firebasestorage.googleapis.com/v0/b/crlspathfinders-82886.appspot.com/o/club-images%2Felementor-placeholder-image.webp?alt=media&token=ca920f5c-bcfa-4739-b6bc-12fd70b00c9c"
     print("in make club")
@@ -142,7 +142,7 @@ def manage_members(secret_password, new_members):
         db.collection(collection).document(doc_id).update({"members": new_members})
         club_id = get_el_id("Clubs", secret_password)
         coll_id = get_collection_id("Clubs", club_id)
-        add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
+        add_redis_collection_id("Clubs", coll_id, club_id=club_id)
         add_redis_collection("Users")
         return {"status": "Successfully updated members"}
     except Exception as e:
@@ -168,7 +168,7 @@ def verify_club_model(secret_password):
             update_status(secret_password, "Approved")
             club_id = get_el_id("Clubs", secret_password)
             coll_id = get_collection_id("Clubs", club_id)
-            add_id = add_redis_collection_id("Clubs", coll_id, club_id=club_id)
+            add_redis_collection_id("Clubs", coll_id, club_id=club_id)
             print(f"got club: {club}")
             return {"status": "Success", "club": club}
         elif whole_club["status"] == "Approved":
