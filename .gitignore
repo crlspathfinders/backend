@@ -8,3 +8,4 @@ testenv.py
 cache/
 test_routes.py
 tests/
+ok_venv/

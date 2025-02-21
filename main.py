@@ -2,7 +2,6 @@ from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import secrets
 from fastapi.middleware.cors import CORSMiddleware
-from cloudinary.utils import cloudinary_url
 import os, sys, io
 import json, tempfile, mimetypes
 from fastapi.responses import StreamingResponse
