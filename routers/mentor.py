@@ -327,6 +327,19 @@ Abel Asefaw '25
 def toggle_show_mentor(mentor_email: str):
     return show_or_hide_mentor(mentor_email)
 
+class TestUpMenCat(BaseModel):
+    catalog_id: str
+    mentee_email: str
+    mentor_email: str
+    hours: int
+    mentee_description: str
+    date_confirmed: str
+    date_met: str
+
+@router.post("/testupdatementeecat")
+def test_update_mentee_cat(test: TestUpMenCat):
+    update_mentee_catalog(test.catalog_id, test.mentee_email, test.mentor_email, test.hours, test.mentee_description, test.date_confirmed, test.date_met)
+
 
 @router.post("/menteeconfirmhours/")
 def mentee_confirm_hours(
@@ -338,7 +351,7 @@ def mentee_confirm_hours(
     mentor_email = mentee_log.mentor_email
     mentee_hours = mentee_log.mentee_hours
     mentee_description = mentee_log.mentee_description
-    # print(mentee_log)
+    print(mentee_log)
     # First check if confirm is True
     # If true, first change mentee is_mentor to True, and update their mentee logs with their own description, timestamp, hours worked, and with which mentor they worked.
     # Then, update mentor logs.
@@ -346,6 +359,7 @@ def mentee_confirm_hours(
         log_status = confirm_mentor_mentee_logging(
             catalog_id, mentee_email, mentor_email, mentee_hours
         )
+        print(log_status)
         if log_status["status"] == 0:
             mentor_id = get_el_id("Mentors", mentee_log.mentor_email)
             coll_id = get_collection_id("Mentors", mentor_id)
@@ -356,7 +370,7 @@ def mentee_confirm_hours(
             mentor_log = log_status["mentor_log"]
             date_met = mentor_log["date"]
             date_confirmed = datetime.date.today()
-            update_mentee_catalog(
+            update_mentee_cat = update_mentee_catalog(
                 catalog_id,
                 mentee_email,
                 mentor_email,
@@ -365,9 +379,12 @@ def mentee_confirm_hours(
                 str(date_confirmed),
                 date_met,
             )
+            print(update_mentee_cat)
             mentor_id = get_el_id("Mentors", mentee_log.mentor_email)
             coll_id = get_collection_id("Mentors", mentor_id)
             add_id = add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
+            coll_id = get_collection_id("Users", get_el_id("Users", mentee_email))
+            add_id = add_redis_collection_id("Users", coll_id, user_id=get_el_id("Users", mentee_email))
             print(add_id)
         elif log_status["status"] == -2:  # Mismatching hours:
             # print("hours do not match confirmed")

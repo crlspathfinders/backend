@@ -206,25 +206,38 @@ def update_mentee_catalog(
     date_confirmed,
     date_met,
 ):
-    new_mentee_catalog = {
-        "id": catalog_id,  # Same id as the mentor catalog's id
-        "mentor": mentor_email,
-        "hours": hours,
-        "description": mentee_description,
-        "date_confirmed": date_confirmed,
-        "date_met": date_met,
-    }
-    mentee_id = get_el_id("Users", mentee_email)
-    mentee = get_doc("Users", mentee_id)
-    mentee_logs = mentee["mentee_logs"]
-    # Plan for outliers - only append if the id is unique.
-    for m in mentee_logs:
-        if m["id"] == new_mentee_catalog["id"]:
-            return -1
-    mentee_logs.append(new_mentee_catalog)
-    db.collection("Users").document(mentee_id).update(
-        {"is_mentee": True, "mentee_logs": mentee_logs}
-    )
+    print("started")
+    try:
+        new_mentee_catalog = {
+            "id": catalog_id,  # Same id as the mentor catalog's id
+            "mentor": mentor_email,
+            "hours": hours,
+            "description": mentee_description,
+            "date_confirmed": date_confirmed,
+            "date_met": date_met,
+        }
+        mentee_id = get_el_id("Users", mentee_email)
+        print(mentee_id)
+        mentee = get_doc("Users", mentee_id)
+        print(mentee)
+        mentee_logs = mentee["mentee_logs"]
+        print(mentee_logs)
+        # Plan for outliers - only append if the id is unique.
+        # for m in mentee_logs:
+        #     if m["id"] == new_mentee_catalog["id"]:
+        #         print(-1)
+        #         return -1
+        mentee_logs.append(new_mentee_catalog)
+        print(f"mentee logs - {mentee_logs}")
+        print(db.collection("Users").document(mentee_id))
+        db.collection("Users").document(mentee_id).update(
+            {"is_mentee": True, "mentee_logs": mentee_logs}
+        )
+        
+        return {"status": 0}
+    except Exception as e:
+        print(f"failed: {e}")
+        return {"status": -1, "error_message": e}
 
 
 def get_mentees():
