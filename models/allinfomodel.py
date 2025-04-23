@@ -79,3 +79,13 @@ def add_document_to_all_info_collection(doc):
     except Exception as e:
         print(e)
         return {"status": -1, "error_message": e}
+    
+def update_doc(doc, update):
+    try:
+        all_all_info = get_collection_python("AllInfo")
+        for a in all_all_info:
+            if a["id"] == doc:
+                # print(a)
+                db.collection("AllInfo").document(doc).update(update)
+    except Exception as e:
+        print(f"Failed miserably: {e}")

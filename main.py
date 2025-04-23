@@ -15,7 +15,7 @@ from models.model import (
     remove_id,
     get_collection_python,
 )
-from routers import user, club, mentor, opportunity, allinfo, libraryinfo
+from routers import user, club, mentor, opportunity, allinfo, libraryinfo, alumni
 from requests_cache import CachedSession
 from dotenv import load_dotenv
 from sendmail import send_mail
@@ -87,6 +87,7 @@ app.include_router(mentor.router)
 app.include_router(opportunity.router)
 app.include_router(allinfo.router)
 app.include_router(libraryinfo.router)
+app.include_router(alumni.router)
 
 # Model schemas:
 
