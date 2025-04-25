@@ -1,5 +1,5 @@
 import os, secrets, uuid, random, string
-from typing import Annotated
+from typing import Annotated, List
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -47,6 +47,8 @@ class Alum(BaseModel):
     major: str
     bio: str
     loc: str
+    coords: List[str]
+    logo: str
 
 @router.post("/addalumni/")
 def add_alumni(alum: Alum, username: Annotated[str, Depends(get_current_username)]):
@@ -63,9 +65,9 @@ def add_alumni(alum: Alum, username: Annotated[str, Depends(get_current_username
             # print(unis)
             for u in unis:
                 curr_uni = universities[u]
-                print(curr_uni)
+                # print(curr_uni)
                 if curr_uni["name"] == alum.fullschool:
-                    print("found")
+                    # print("found")
                     universities[u]["amount_in"] += 1
                     update_doc("universities", universities)
                     return {"status": 0}
@@ -73,7 +75,9 @@ def add_alumni(alum: Alum, username: Annotated[str, Depends(get_current_username
             new_uni = {
                 "name": alum.fullschool,
                 "loc": alum.loc,
-                "amount_in": 1
+                "amount_in": 1,
+                "coords": alum.coords,
+                "logo": alum.logo
             }
             # print(new_uni)
             universities[new_id] = new_uni
