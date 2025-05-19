@@ -155,7 +155,7 @@ def show_or_hide_mentor(mentor_email):
     # print(not toggle)
     try:
         db.collection("Mentors").document(doc_id).update({"show": toggle})
-        mentor_id = get_el_id("Mentors", mentor.email)
+        mentor_id = get_el_id("Mentors", mentor["email"])
         coll_id = get_collection_id("Mentors", mentor_id)
         add_redis_collection_id("Mentors", coll_id, mentor_id=mentor_id)
     except Exception as e:
